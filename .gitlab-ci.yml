@@ -1,0 +1,36 @@
+image: docker:stable
+
+stages:
+  - Build e Push image
+  - Build e Push image latest
+  - Documentation
+
+update readme:
+  stage: Documentation
+  only:
+  - master
+  script:
+  - docker run --rm -v $(pwd)/README.md:/data/README.md -e DOCKERHUB_USERNAME="$DOCKER_HUB_USER" -e DOCKERHUB_PASSWORD="$DOCKER_HUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="maurosoft1973" -e DOCKERHUB_REPO_NAME="alpine-mariadb" sheogorath/readme-to-dockerhub
+
+amd64 latest build:
+  stage: Build e Push image latest
+  only:
+  - master
+  script:
+  - BUILD_DATE=$(date +"%Y-%m-%d")
+  - docker build --build-arg BUILD_DATE=$BUILD_DATE -t maurosoft1973/alpine-mariadb -t maurosoft1973/alpine-mariadb:amd64 -t maurosoft1973/alpine-mariadb:x86_64 .
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
+  - docker push maurosoft1973/alpine-mariadb:amd64
+  - docker push maurosoft1973/alpine-mariadb:x86_64
+  - docker push maurosoft1973/alpine-mariadb
+
+amd64 10.4.12 build:
+  stage: Build e Push image
+  only:
+  - master
+  script:
+  - BUILD_DATE=$(date +"%Y-%m-%d")
+  - docker build --build-arg BUILD_DATE=$BUILD_DATE -t maurosoft1973/alpine-mariadb:10.4.12-amd64 -t maurosoft1973/alpine-mariadb:10.4.12-x86_64 .
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
+  - docker push maurosoft1973/alpine-mariadb:10.4.12-amd64
+  - docker push maurosoft1973/alpine-mariadb:10.4.12-x86_64

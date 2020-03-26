@@ -64,13 +64,14 @@ EOF
 
 		if [ "$MYSQL_USER" != "" ]; then
 			echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
-			echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
-			echo "GRANT ALL PRIVILEGES ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%';" >> $tfile
+			echo "GRANT ALL PRIVILEGES ON \`$MYSQL_DATABASE\`.* TO \`$MYSQL_USER\`@\`localhost\` IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
+			echo "GRANT ALL PRIVILEGES ON \`$MYSQL_DATABASE\`.* TO \`$MYSQL_USER\`@\`%\` IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
 			echo "FLUSH PRIVILEGES ;" >> $tfile
 	    fi
 	fi		  
 
 	/usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < $tfile
+	
 	rm -f $tfile
 
 	for f in /docker-entrypoint-initdb.d/*; do
