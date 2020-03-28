@@ -10,7 +10,7 @@
 
 This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.4.12](https://mariadb.org/) (MySQL Compatible) database server.
 
-##### Alpine Version 3.11.5 (Released Mar 20, 2020)
+##### Alpine Version 3.11.5 (Released Mar 23, 2020)
 ##### MariaDB Version 10.4.12
 
 ----
