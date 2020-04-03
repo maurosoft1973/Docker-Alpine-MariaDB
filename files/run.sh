@@ -1,5 +1,10 @@
 #!/bin/sh
 
+LOCALTIME=${LOCALTIME:-"Europe/Brussels"}
+
+echo "Change default localtime with ${LOCALTIME}"
+cp /usr/share/zoneinfo/${LOCALTIME} /etc/localtime
+
 # execute any pre-init scripts
 for i in /scripts/pre-init.d/*sh
 do

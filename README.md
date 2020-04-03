@@ -63,7 +63,7 @@ MariaDB is developed as open source software and as a relational database it pro
 * `MYSQL_ROOT_PASSWORD`: specify the root password for Mariadb
 * `MYSQL_CHARSET`: default charset (utf8) for Mariadb
 * `MYSQL_COLLATION`: default collation (utf8_general_ci) for Mariadb
-
+* `LOCALTIME`: default localtime (Europe/Brussels)
 
 #### List of Character Sets & information
 
