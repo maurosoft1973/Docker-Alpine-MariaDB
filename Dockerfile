@@ -16,7 +16,7 @@ LABEL maintainer="Mauro Cardillo <mauro.cardillo@gmail.com>" \
     org.opencontainers.image.source="https://github.com/maurosoft1973/alpine-mariadb" \
     org.opencontainers.image.created=$BUILD_DATE
 
-RUN apk add --no-cache mariadb mariadb-client mariadb-server-utils pwgen && \
+RUN apk add --no-cache mariadb mariadb-client mariadb-server-utils pwgen tzdata && \
     rm -f /var/cache/apk/*
 
 ADD files/run.sh /scripts/run.sh
