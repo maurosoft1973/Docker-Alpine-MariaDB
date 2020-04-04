@@ -7,10 +7,16 @@ stages:
 
 update readme:
   stage: Documentation
+  variables:
+    DOCKERHUB_USERNAME: "$DOCKER_HUB_USER"
+    DOCKERHUB_PASSWORD: "$DOCKER_HUB_PASSWORD"
+    DOCKERHUB_REPO_PREFIX: "maurosoft1973"
+    DOCKERHUB_REPO_NAME: "alpine-mariadb"
   only:
   - master
   script:
-  - docker run --rm -v $(pwd):/data/ -e DOCKERHUB_USERNAME="$DOCKER_HUB_USER" -e DOCKERHUB_PASSWORD="$DOCKER_HUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="maurosoft1973" -e DOCKERHUB_REPO_NAME="alpine-mariadb" -e SHORT_DESCRIPTION="MariaDB Docker image running on Alpine Linux" maurosoft1973/alpine-readme-to-dockerhub
+  - FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
+  - docker run --rm -e DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKERHUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="MariaDB Docker image running on Alpine Linux" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
 
 amd64 latest build:
   stage: Build e Push image latest
