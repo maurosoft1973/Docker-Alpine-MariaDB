@@ -5,8 +5,8 @@ ARG BUILD_DATE
 LABEL maintainer="Mauro Cardillo <mauro.cardillo@gmail.com>" \
     architecture="amd64/x86_64" \
     mariadb-version="10.4.12" \
-    alpine-version="3.11.5" \
-    build="04-Apr-2020" \
+    alpine-version="3.11.6" \
+    build="07-May-2020" \
     org.opencontainers.image.title="alpine-mariadb" \
     org.opencontainers.image.description="MariaDB Docker image running on Alpine Linux" \
     org.opencontainers.image.authors="Mauro Cardillo <mauro.cardillo@gmail.com>" \
