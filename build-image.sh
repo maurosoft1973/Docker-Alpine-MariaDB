@@ -9,7 +9,6 @@ echo "Remove image ${IMAGE}:test"
 docker rmi -f ${IMAGE}:test > /dev/null 2>&1
 
 echo "Build Image: ${IMAGE}:test"
-
 docker build --build-arg BUILD_DATE=$BUILD_DATE -t ${IMAGE}:test .
 
 echo "Login Docker HUB"
