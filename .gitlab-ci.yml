@@ -12,12 +12,13 @@ update readme:
     DOCKERHUB_PASSWORD: "$DOCKER_HUB_PASSWORD"
     DOCKERHUB_REPO_PREFIX: "maurosoft1973"
     DOCKERHUB_REPO_NAME: "alpine-mariadb"
+    DOCKERHUB_SHORT_DESCRIPTION: "MariaDB Docker image running on Alpine Linux"
   only:
   - master
   script:
   - FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
   - docker pull maurosoft1973/alpine-readme-to-dockerhub:latest
-  - docker run --rm -e DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKERHUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="MariaDB Docker image running on Alpine Linux" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
+  - docker run --rm -e DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKERHUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="$DOCKERHUB_SHORT_DESCRIPTION" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
 
 amd64 latest build:
   stage: Build e Push image latest
@@ -31,13 +32,13 @@ amd64 latest build:
   - docker push maurosoft1973/alpine-mariadb:x86_64
   - docker push maurosoft1973/alpine-mariadb
 
-amd64 10.4.12 build:
+amd64 10.4.13 build:
   stage: Build e Push image
   only:
   - master
   script:
   - BUILD_DATE=$(date +"%Y-%m-%d")
-  - docker build --build-arg BUILD_DATE=$BUILD_DATE -t maurosoft1973/alpine-mariadb:10.4.12-amd64 -t maurosoft1973/alpine-mariadb:10.4.12-x86_64 .
+  - docker build --build-arg BUILD_DATE=$BUILD_DATE -t maurosoft1973/alpine-mariadb:10.4.13-amd64 -t maurosoft1973/alpine-mariadb:10.4.13-x86_64 .
   - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
-  - docker push maurosoft1973/alpine-mariadb:10.4.12-amd64
-  - docker push maurosoft1973/alpine-mariadb:10.4.12-x86_64
+  - docker push maurosoft1973/alpine-mariadb:10.4.13-amd64
+  - docker push maurosoft1973/alpine-mariadb:10.4.13-x86_64
