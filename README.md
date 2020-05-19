@@ -5,13 +5,13 @@
 [![Docker Stars](https://img.shields.io/docker/stars/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 
 [![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.11.6-green.svg?style=for-the-badge)](https://alpinelinux.org/)
-[![MariaDB Version](https://img.shields.io/badge/Mariadb%20version-v10.4.12-green.svg?style=for-the-badge)](https://mariadb.org/)
+[![MariaDB Version](https://img.shields.io/badge/Mariadb%20version-v10.4.13-green.svg?style=for-the-badge)](https://mariadb.org/)
 
 
-This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.4.12](https://mariadb.org/) (MySQL Compatible) database server.
+This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.4.13](https://mariadb.org/) (MySQL Compatible) database server.
 
 ##### Alpine Version 3.11.6 (Released Apr 23, 2020)
-##### MariaDB Version 10.4.12
+##### MariaDB Version 10.4.13
 
 ----
 
@@ -28,9 +28,10 @@ MariaDB is developed as open source software and as a relational database it pro
 ## Features
 
 * Minimal size only, minimal layers
-* Memory usage is minimal on a simple install.
-* MariaDB the MySQL replacement
-
+* Memory usage is minimal on a simple install
+* Multilanguage support
+* Timezone support
+* MariaDB the MySQL replacement.
 
 ## Architectures
 
@@ -63,7 +64,32 @@ MariaDB is developed as open source software and as a relational database it pro
 * `MYSQL_ROOT_PASSWORD`: specify the root password for Mariadb
 * `MYSQL_CHARSET`: default charset (utf8) for Mariadb
 * `MYSQL_COLLATION`: default collation (utf8_general_ci) for Mariadb
-* `LOCALTIME`: default localtime (Europe/Brussels)
+* `LC_ALL`: default locale (en_GB.UTF-8)
+* `TIMEZONE`: default timezone (Europe/Brussels)
+
+#### List of locale Sets
+
+When setting locale, also make sure to choose a locale otherwise it will be the default (en_GB.UTF-8).
+
+```
++-----------------+
+| Locale          |
++-----------------+
+| ch_DE.UTF-8     |
+| fr_FR.UTF-8     |
+| de_CH.UTF-8     |
+| de_DE.UTF-8     |
+| en_GB.UTF-8     |
+| en_US.UTF-8     |
+| es_ES.UTF-8     |
+| it_IT.UTF-8     |
+| nb_NO.UTF-8     | 
+| nl_NL.UTF-8     |
+| pt_BR.UTF-8     |
+| ru_RU.UTF-8     |
+| sv_SE.UTF-8     |
++-----------------+
+```
 
 #### List of Character Sets & information
 
