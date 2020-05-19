@@ -1,5 +1,5 @@
 #!/bin/bash
-# Description: Script for mysql container
+# Description: Script for alpine mariadb container
 # Maintainer: Mauro Cardillo
 #
 
@@ -36,7 +36,7 @@ do
         IP="${arg#*=}"
         shift # Remove
         ;;
-        -pi=*|--portin=*)
+        -p=*|--port=*)
         PORT_IN="${arg#*=}"
         shift # Remove
         ;;
@@ -82,13 +82,13 @@ echo "# Image               : ${IMAGE}"
 echo "# Container Name      : ${CONTAINER}"
 echo "# Locale              : ${LC_ALL}"
 echo "# Timezone            : ${TIMEZONE}"
-echo "# IP                  : ${IP}"
-echo "# PORT                : ${PORT}"
-echo "# MYSQL_DATA          : ${MYSQL_DATA}"
-echo "# MYSQL_DATABASE      : ${MYSQL_DATABASE}"
-echo "# MYSQL_USER          : ${MYSQL_USER}"
-echo "# MYSQL_PASSWORD      : ${MYSQL_PASSWORD}"
-echo "# MYSQL_ROOT_PASSWORD : ${MYSQL_ROOT_PASSWORD}"
+echo "# IP Listen           : ${IP}"
+echo "# PORT Listen         : ${PORT}"
+echo "# MYSQL Data          : ${MYSQL_DATA}"
+echo "# MYSQL Database      : ${MYSQL_DATABASE}"
+echo "# MYSQL User          : ${MYSQL_USER}"
+echo "# MYSQL Password      : ${MYSQL_PASSWORD}"
+echo "# MYSQL Root Password : ${MYSQL_ROOT_PASSWORD}"
 
 echo -e "Check if container ${CONTAINER} exist"
 CHECK=$(docker container ps -a | grep ${CONTAINER} | wc -l)
@@ -129,3 +129,7 @@ docker exec -it ${CONTAINER} date
 echo -e ""
 echo -e "Check Connection to DB"
 docker exec -it $CONTAINER mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE} -e "SELECT NOW()"
+
+echo -e ""
+echo -e "Container Logs"
+docker logs ${CONTAINER}
