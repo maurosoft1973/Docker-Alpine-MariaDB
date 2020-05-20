@@ -2,7 +2,7 @@
 # Description: Build image and push to repository
 # Maintainer: Mauro Cardillo
 # DOCKER_HUB_USER and DOCKER_HUB_PASSWORD is user environment variable
-IMAGE=maurosoft1973/mariadb
+IMAGE=maurosoft1973/alpine-mariadb
 BUILD_DATE=$(date +"%Y-%m-%d")
 
 echo "Remove image ${IMAGE}:test"
