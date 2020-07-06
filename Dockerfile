@@ -6,8 +6,8 @@ LABEL \
   maintainer="Mauro Cardillo <mauro.cardillo@gmail.com>" \
   architecture="amd64/x86_64" \
   mariadb-version="10.4.13" \
-  alpine-version="3.11.6" \
-  build="20-May-2020" \
+  alpine-version="3.12.0" \
+  build="06-Jul-2020" \
   org.opencontainers.image.title="alpine-mariadb" \
   org.opencontainers.image.description="MariaDB Docker image running on Alpine Linux" \
   org.opencontainers.image.authors="Mauro Cardillo <mauro.cardillo@gmail.com>" \
