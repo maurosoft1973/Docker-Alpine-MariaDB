@@ -32,13 +32,13 @@ amd64 latest build:
   - docker push maurosoft1973/alpine-mariadb:x86_64
   - docker push maurosoft1973/alpine-mariadb
 
-amd64 10.4.13 build:
+amd64 10.4.15 build:
   stage: Build e Push image
   only:
   - master
   script:
   - BUILD_DATE=$(date +"%Y-%m-%d")
-  - docker build --build-arg BUILD_DATE=$BUILD_DATE -t maurosoft1973/alpine-mariadb:10.4.13-amd64 -t maurosoft1973/alpine-mariadb:10.4.13-x86_64 .
+  - docker build --build-arg BUILD_DATE=$BUILD_DATE -t maurosoft1973/alpine-mariadb:10.4.15-amd64 -t maurosoft1973/alpine-mariadb:10.4.15-x86_64 .
   - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
-  - docker push maurosoft1973/alpine-mariadb:10.4.13-amd64
-  - docker push maurosoft1973/alpine-mariadb:10.4.13-x86_64
+  - docker push maurosoft1973/alpine-mariadb:10.4.15-amd64
+  - docker push maurosoft1973/alpine-mariadb:10.4.15-x86_64

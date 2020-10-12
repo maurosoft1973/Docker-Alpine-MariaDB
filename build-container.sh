@@ -5,12 +5,12 @@
 
 # Default values of arguments
 IMAGE=maurosoft1973/alpine-mariadb:test
-CONTAINER=mysql-test
+CONTAINER=mariadb-test
 LC_ALL=it_IT.UTF-8
 TIMEZONE=Europe/Rome
 IP=0.0.0.0
 PORT=33060
-MYSQL_DATA=/var/lib/mysql-test
+MYSQL_DATA=/var/lib/mariadb-dbtest
 MYSQL_DATABASE=dbtest
 MYSQL_USER=test
 MYSQL_PASSWORD=test
@@ -63,16 +63,16 @@ do
         -h|--help)
         echo -e "usage "
         echo -e "$0 "
-		echo -e "  -c=|--container -> ${CONTAINER} (name of container)"
+		    echo -e "  -c=|--container -> ${CONTAINER} (name of container)"
         echo -e "  -l=|--lc_all=${LC_ALL} -> locale"
         echo -e "  -t=|--timezone=${TIMEZONE} -> timezone"
-		echo -e "  -i=|--ip -> ${IP} (address ip listen)"
-		echo -e "  -p=|--port -> ${PORT} (port listen)"
-		echo -e "  -d=|--data -> ${MYSQL_DATA} (path of data)"
-		echo -e "  -n=|--database -> ${MYSQL_DATABASE} (name of database)"
-		echo -e "  -u=|--user -> ${MYSQL_USER} (mysql user)"
-		echo -e "  -p=|--password -> ${MYSQL_PASSWORD} (mysql password)"
-		echo -e "  -r=|--rootpassword -> ${MYSQL_ROOT_PASSWORD} (mysql root password)"
+		    echo -e "  -i=|--ip -> ${IP} (address ip listen)"
+		    echo -e "  -p=|--port -> ${PORT} (port listen)"
+		    echo -e "  -d=|--data -> ${MYSQL_DATA} (path of data)"
+		    echo -e "  -n=|--database -> ${MYSQL_DATABASE} (name of database)"
+		    echo -e "  -u=|--user -> ${MYSQL_USER} (mysql user)"
+		    echo -e "  -p=|--password -> ${MYSQL_PASSWORD} (mysql password)"
+		    echo -e "  -r=|--rootpassword -> ${MYSQL_ROOT_PASSWORD} (mysql root password)"
         exit 0
 		;;
     esac
@@ -110,7 +110,7 @@ if [ ${CHECK} == 1 ]; then
 fi
 
 echo -e "Create and run container"
-docker run -idt --name ${CONTAINER} -p ${IP}:${PORT}:3306 -v ${MYSQL_DATA}:/var/lib/mysql -e LC_ALL=${LC_ALL} -e TIMEZONE=${TIMEZONE} -e MYSQL_DATABASE=${MYSQL_DATABASE} -e MYSQL_USER=${MYSQL_USER} -e MYSQL_PASSWORD=${MYSQL_PASSWORD} -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} ${IMAGE}
+docker run -idt --name ${CONTAINER} -p ${IP}:${PORT}:3306 -v ${MYSQL_DATA}:/var/lib/mysql -v $(pwd)/pre-init.d:/scripts/pre-init.d -e LC_ALL=${LC_ALL} -e TIMEZONE=${TIMEZONE} -e MYSQL_DATABASE=${MYSQL_DATABASE} -e MYSQL_USER=${MYSQL_USER} -e MYSQL_PASSWORD=${MYSQL_PASSWORD} -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} ${IMAGE}
 
 echo -e "Sleep 5 second"
 sleep 5
