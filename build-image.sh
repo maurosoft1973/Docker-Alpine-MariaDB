@@ -68,11 +68,11 @@ if [ "$RELEASE" == "TEST" ]; then
     echo "Login Docker HUB"
     echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
 
-    echo "Push Image -> ${IMAGE}:test"
-    docker push ${IMAGE}:test
-
     echo "Push Image -> ${IMAGE}:${MARIADB_VERSION}-test"
     docker push ${IMAGE}:${MARIADB_VERSION}-test
+
+    echo "Push Image -> ${IMAGE}:test"
+    docker push ${IMAGE}:test
 elif [ "$RELEASE" == "CURRENT" ]; then
     echo "Remove image ${IMAGE}:${MARIADB_VERSION}"
     docker rmi -f ${IMAGE}:${MARIADB_VERSION} > /dev/null 2>&1
@@ -89,14 +89,14 @@ elif [ "$RELEASE" == "CURRENT" ]; then
     echo "Login Docker HUB"
     echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
 
-    echo "Push Image -> ${IMAGE}:${MARIADB_VERSION}"
-    docker push ${IMAGE}:${MARIADB_VERSION}
-
     echo "Push Image -> ${IMAGE}:${MARIADB_VERSION}-amd64"
     docker push ${IMAGE}:${MARIADB_VERSION}-amd64
 
     echo "Push Image -> ${IMAGE}:${MARIADB_VERSION}-x86_64"
     docker push ${IMAGE}:${MARIADB_VERSION}-x86_64
+
+    echo "Push Image -> ${IMAGE}:${MARIADB_VERSION}"
+    docker push ${IMAGE}:${MARIADB_VERSION}
 else
     echo "Remove image ${IMAGE}:latest"
     docker rmi -f ${IMAGE} > /dev/null 2>&1
@@ -113,12 +113,12 @@ else
     echo "Login Docker HUB"
     echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
 
-    echo "Push Image -> ${IMAGE}:latest"
-    docker push ${IMAGE}:latest
-
     echo "Push Image -> ${IMAGE}:amd64"
     docker push ${IMAGE}:amd64
 
     echo "Push Image -> ${IMAGE}:x86_64"
     docker push ${IMAGE}:x86_64
+
+    echo "Push Image -> ${IMAGE}:latest"
+    docker push ${IMAGE}:latest
 fi
