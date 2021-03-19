@@ -1,32 +1,37 @@
 FROM maurosoft1973/alpine
 
 ARG BUILD_DATE
+ARG ALPINE_RELEASE
+ARG ALPINE_VERSION
+ARG MARIADB_VERSION
 
 LABEL \
     maintainer="Mauro Cardillo <mauro.cardillo@gmail.com>" \
     architecture="amd64/x86_64" \
-    mariadb-version="10.4.15" \
-    alpine-version="3.12.0" \
+    mariadb-version="$MARIADB_VERSION" \
+    alpine-version="$ALPINE_VERSION" \
     build="$BUILD_DATE" \
     org.opencontainers.image.title="alpine-mariadb" \
     org.opencontainers.image.description="MariaDB Docker image running on Alpine Linux" \
     org.opencontainers.image.authors="Mauro Cardillo <mauro.cardillo@gmail.com>" \
     org.opencontainers.image.vendor="Mauro Cardillo" \
-    org.opencontainers.image.version="v10.4.15" \
+    org.opencontainers.image.version="v$MARIADB_VERSION" \
     org.opencontainers.image.url="https://hub.docker.com/r/maurosoft1973/alpine-mariadb/" \
     org.opencontainers.image.source="https://github.com/maurosoft1973/alpine-mariadb" \
     org.opencontainers.image.created=$BUILD_DATE
 
 RUN \
+    echo "" > /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/main" >> /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/community" >> /etc/apk/repositories && \
+    apk update && \
     apk add --no-cache mariadb mariadb-client mariadb-server-utils pwgen && \
+    mkdir /docker-entrypoint-initdb.d && \
+    mkdir /scripts/pre-exec.d && \
+    mkdir /scripts/pre-init.d && \
     rm -f /var/cache/apk/*
 
 ADD files/run-alpine-mariadb.sh /scripts/run-alpine-mariadb.sh
-
-RUN \
-    mkdir /docker-entrypoint-initdb.d && \
-    mkdir /scripts/pre-exec.d && \
-    mkdir /scripts/pre-init.d
 
 RUN chmod -R 755 /scripts
 
