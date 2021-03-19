@@ -39,7 +39,8 @@ amd64 test build:
     variables:
         RELEASE: "TEST"
     script:
-        - sh ./build-image.sh -ar=$ALPINE_RELEASE -av=$ALPINE_VERSION -avd=$ALPINE_VERSION_DATE -r=$RELEASE
+        - apk add bash
+        - bash ./build-image.sh -ar=$ALPINE_RELEASE -av=$ALPINE_VERSION -avd=$ALPINE_VERSION_DATE -r=$RELEASE
 
 amd64 current build:
     stage: Build e Push image
@@ -48,7 +49,8 @@ amd64 current build:
     only:
         - master
     script:
-        - sh ./build-image.sh -ar=$ALPINE_RELEASE -av=$ALPINE_VERSION -avd=$ALPINE_VERSION_DATE -r=$RELEASE
+        - apk add bash
+        - bash ./build-image.sh -ar=$ALPINE_RELEASE -av=$ALPINE_VERSION -avd=$ALPINE_VERSION_DATE -r=$RELEASE
 
 amd64 latest build:
     stage: Build e Push image
@@ -57,5 +59,6 @@ amd64 latest build:
     only:
         - master
     script:
-        - sh ./build-image.sh -ar=$ALPINE_RELEASE -av=$ALPINE_VERSION -avd=$ALPINE_VERSION_DATE -r=$RELEASE
+        - apk add bash
+        - bash ./build-image.sh -ar=$ALPINE_RELEASE -av=$ALPINE_VERSION -avd=$ALPINE_VERSION_DATE -r=$RELEASE
 
