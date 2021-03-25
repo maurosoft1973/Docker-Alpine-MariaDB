@@ -1,18 +1,21 @@
 image: docker:stable
 
 stages:
-  - Build e Push image
-  - Documentation
+    - Build e Push image
+    - Documentation
 
-variables:
-    ALPINE_RELEASE: "3.13"
-    ALPINE_VERSION: "3.13.2"
-    ALPINE_VERSION_DATE: "Feb, 17 2021"
-    MARIADB_VERSION: "10.5.8-r0"
+before_script:
+    - apk add bash
+    - echo "Read Environment Variable from .env file"
+    - source ./.env
+    - export JOB_ALPINE_VERSION=${CI_ALPINE_VERSION:-"$ALPINE_VERSION"}
+    - export JOB_ALPINE_VERSION_DATE=${CI_ALPINE_VERSION_DATE:-"$ALPINE_VERSION_DATE"}
+    - export JOB_ALPINE_RELEASE=${CI_ALPINE_RELEASE:-"$ALPINE_RELEASE"}
 
 update readme:
     stage: Documentation
     variables:
+        GITLAB_SSH_KEY: "$GITLAB_CI_SSH_KEY"
         DOCKERHUB_USERNAME: "$DOCKER_HUB_USER"
         DOCKERHUB_PASSWORD: "$DOCKER_HUB_PASSWORD"
         DOCKERHUB_REPO_PREFIX: "maurosoft1973"
@@ -21,14 +24,35 @@ update readme:
     only:
         - master
     script:
-        - LATEST_UPDATE=$(date +"%d.%m.%Y %H:%M:%S")
+        - apk add --no-cache bash git openssh-client ca-certificates
+        - git config --global user.email "mauro.cardillo@gmail.com"
+        - git config --global user.name "Mauro Cardillo"
+        - /bin/bash
+        - mkdir -p ~/.ssh &&  chmod 700 ~/.ssh
+        - echo -e "$GITLAB_SSH_KEY" > ~/.ssh/gitlab_ci_ed25519
+        - chmod 600 ~/.ssh/gitlab_ci_ed25519
+        - echo -e "Host gitlab.com\nHostName gitlab.com\nIdentityFile ~/.ssh/gitlab_ci_ed25519" > ~/.ssh/config
+        - echo -e "Add host gitlab.com to known_hosts"
+        - ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
+        - echo -e "Setting permission for ~/.ssh/known_hosts (chmod 644)"
+        - chmod 644 ~/.ssh/known_hosts
+        - echo -e "Test GILAB Access"
+        - ssh -T git@gitlab.com
+        - git clone git@gitlab.com:maurosoft1973-docker/$DOCKERHUB_REPO_NAME.git /tmp/$DOCKERHUB_REPO_NAME
+        - cd /tmp/$DOCKERHUB_REPO_NAME
+        - LAST_UPDATE=$(date +"%d.%m.%Y %H:%M:%S")
         - echo "Generate README for Version ${MARIADB_VERSION}"
-        - sed "s/\%ALPINE_VERSION\%/${ALPINE_VERSION}/g" README.tpl > README.md1
-        - sed "s/\%ALPINE_VERSION_DATE\%/${ALPINE_VERSION_DATE}/g" README.md1 > README.md2
-        - sed "s/\%MARIADB_VERSION\%/${MARIADB_VERSION}/g" README.md2 > README.md3
-        - sed "s/\%LATEST_UPDATE\%/${LATEST_UPDATE}/g" README.md3 > README.md
+        - sed "s/\%ALPINE_VERSION\%/${ALPINE_VERSION}/g" README.tpl > README_COMPILE.md1
+        - sed "s/\%ALPINE_VERSION_DATE\%/${ALPINE_VERSION_DATE}/g" README_COMPILE.md1 > README_COMPILE.md2
+        - sed "s/\%MARIADB_VERSION\%/${MARIADB_VERSION}/g" README_COMPILE.md2 > README_COMPILE.md3
+        - sed "s/\%MARIADB_VERSION_DATE\%/${MARIADB_VERSION_DATE}/g" README_COMPILE.md3 > README_COMPILE.md4
+        - sed "s/\%LAST_UPDATE\%/${LAST_UPDATE}/g" README_COMPILE.md4 > README.md
+        - rm -rf README_COMPILE.*
+        - git add .
+        - git commit -m "Update README"
+        - git push -o ci.skip
         - FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
-        - docker pull maurosoft1973/alpine-readme-to-dockerhub:latest
+        - docker pull maurosoft1973/alpine-readme-to-dockerhub
         - docker run --rm -e DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKERHUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="$DOCKERHUB_SHORT_DESCRIPTION" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
 
 amd64 test build:
@@ -39,8 +63,7 @@ amd64 test build:
     variables:
         RELEASE: "TEST"
     script:
-        - apk add bash
-        - bash ./build-image.sh -ar=$ALPINE_RELEASE -av=$ALPINE_VERSION -avd=$ALPINE_VERSION_DATE -r=$RELEASE
+        - bash ./build-image.sh -av=$JOB_ALPINE_VERSION -avd=$JOB_ALPINE_VERSION_DATE -ar=$JOB_ALPINE_RELEASE -r=$RELEASE
 
 amd64 current build:
     stage: Build e Push image
@@ -49,8 +72,7 @@ amd64 current build:
     only:
         - master
     script:
-        - apk add bash
-        - bash ./build-image.sh -ar=$ALPINE_RELEASE -av=$ALPINE_VERSION -avd=$ALPINE_VERSION_DATE -r=$RELEASE
+        - bash ./build-image.sh -av=$JOB_ALPINE_VERSION -avd=$JOB_ALPINE_VERSION_DATE -ar=$JOB_ALPINE_RELEASE -r=$RELEASE
 
 amd64 latest build:
     stage: Build e Push image
@@ -59,6 +81,5 @@ amd64 latest build:
     only:
         - master
     script:
-        - apk add bash
-        - bash ./build-image.sh -ar=$ALPINE_RELEASE -av=$ALPINE_VERSION -avd=$ALPINE_VERSION_DATE -r=$RELEASE
+        - bash ./build-image.sh -av=$JOB_ALPINE_VERSION -avd=$JOB_ALPINE_VERSION_DATE -ar=$JOB_ALPINE_RELEASE -r=$RELEASE
 

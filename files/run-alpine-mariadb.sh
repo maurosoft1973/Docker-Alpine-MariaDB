@@ -6,6 +6,12 @@ MYSQL_DATA_USER=${MYSQL_DATA_USER:-"mysql"}
 MYSQL_DATA_USER_UID=${MYSQL_DATA_USER_UID:-"100"}
 MYSQL_DATA_GROUP=${MYSQL_DATA_GROUP:-"mysql"}
 MYSQL_DATA_GROUP_UID=${MYSQL_DATA_GROUP_UID:-"101"}
+MYSQL_DATABASE=${MYSQL_DATABASE:-""}
+MYSQL_CHARSET=${MYSQL_CHARSET:-"utf8"}
+MYSQL_COLLATION=${MYSQL_COLLATION:-"utf8_general_ci"}
+MYSQL_USER=${MYSQL_USER:-""}
+MYSQL_PASSWORD=${MYSQL_PASSWORD:-""}
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-""}
 
 echo "MYSQL_DATA_USER: ${MYSQL_DATA_USER}"
 echo "MYSQL_DATA_USER_UID: ${MYSQL_DATA_USER_UID}"
@@ -31,9 +37,10 @@ else
 fi
 
 if [ "${MYSQL_DATA_USER}" != "mysql" ]; then
-    echo "[mysqld]" > /etc/my.cnf.d/mariadb-server.cnf
-    echo "innodb_flush_method=O_DIRECT" >> /etc/my.cnf.d/mariadb-server.cnf
+    echo "[mysqld]" >> /etc/my.cnf.d/mariadb-server.cnf
+    #echo "innodb_flush_method=O_DIRECT" >> /etc/my.cnf.d/mariadb-server.cnf
     echo "innodb_use_native_aio=0" >> /etc/my.cnf.d/mariadb-server.cnf
+    cat /etc/my.cnf.d/mariadb-server.cnf
 fi
 
 # execute any pre-init scripts
@@ -65,13 +72,9 @@ else
     mysql_install_db --user=$MYSQL_DATA_USER --ldata=/var/lib/mysql
 
     if [ "$MYSQL_ROOT_PASSWORD" = "" ]; then
-        MYSQL_ROOT_PASSWORD=`pwgen 16 1`
+        MYSQL_ROOT_PASSWORD=`pwgen -s 25 1`
         echo "[i] MySQL root Password: $MYSQL_ROOT_PASSWORD"
     fi
-
-    MYSQL_DATABASE=${MYSQL_DATABASE:-""}
-    MYSQL_USER=${MYSQL_USER:-""}
-    MYSQL_PASSWORD=${MYSQL_PASSWORD:-""}
 
     tfile=`mktemp`
     if [ ! -f "$tfile" ]; then
@@ -90,13 +93,9 @@ EOF
 
     if [ "$MYSQL_DATABASE" != "" ]; then
         echo "[i] Creating database: $MYSQL_DATABASE"
-        if [ "$MYSQL_CHARSET" != "" ] && [ "$MYSQL_COLLATION" != "" ]; then
-            echo "[i] with character set [$MYSQL_CHARSET] and collation [$MYSQL_COLLATION]"
-            echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET $MYSQL_CHARSET COLLATE $MYSQL_COLLATION;" >> $tfile
-        else
-            echo "[i] with character set: 'utf8' and collation: 'utf8_general_ci'"
-            echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >> $tfile
-        fi
+        echo "[i] with character set [$MYSQL_CHARSET] and collation [$MYSQL_COLLATION]"
+
+        echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET $MYSQL_CHARSET COLLATE $MYSQL_COLLATION;" >> $tfile
 
         if [ "$MYSQL_USER" != "" ]; then
             echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
@@ -104,10 +103,10 @@ EOF
             echo "GRANT ALL PRIVILEGES ON \`$MYSQL_DATABASE\`.* TO \`$MYSQL_USER\`@\`%\` IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
             echo "FLUSH PRIVILEGES ;" >> $tfile
         fi
-    fi		  
+    fi
 
     /usr/bin/mysqld --user=$MYSQL_DATA_USER --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < $tfile
-    
+
     rm -f $tfile
 
     for f in /docker-entrypoint-initdb.d/*; do

@@ -53,18 +53,21 @@ MariaDB is developed as open source software and as a relational database it pro
 * `/var/lib/mysql`: Database files
 * `/var/lib/mysql/mysql-bin`: MariaDB logs
 
-
 ## Environment Variables:
 
-### Main Mariadb parameters:
+### Main MariaDB parameters:
+* `LC_ALL`: default locale (en_GB.UTF-8)
+* `TIMEZONE`: default timezone (Europe/Brussels)
+* `MYSQL_DATA_USER`: specify the mysql owner data directory (default mysql)
+* `MYSQL_DATA_USER_UID`: specify the uid for mysql owner data directory (default 100)
+* `MYSQL_DATA_GROUP`: specify the mysql group data directory (default mysql)
+* `MYSQL_DATA_GROUP_UID`: specify the gid for mysql group data directory (default 101)
 * `MYSQL_DATABASE`: specify the name of the database
+* `MYSQL_CHARSET`: default charset (utf8) for Mariadb
+* `MYSQL_COLLATION`: default collation (utf8_general_ci) for Mariadb
 * `MYSQL_USER`: specify the User for the database
 * `MYSQL_PASSWORD`: specify the User password for the database
 * `MYSQL_ROOT_PASSWORD`: specify the root password for Mariadb
-* `MYSQL_CHARSET`: default charset (utf8) for Mariadb
-* `MYSQL_COLLATION`: default collation (utf8_general_ci) for Mariadb
-* `LC_ALL`: default locale (en_GB.UTF-8)
-* `TIMEZONE`: default timezone (Europe/Brussels)
 
 #### List of locale Sets
 
@@ -186,4 +189,4 @@ mysql:
   restart: always
 ```
 ***
-###### Latest Update %LATEST_UPDATE%
+###### Last Update %LAST_UPDATE%

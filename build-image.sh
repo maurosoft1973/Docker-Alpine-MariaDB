@@ -17,6 +17,17 @@ MARIADB_VERSIONS["3.9"]="10.3.25-r0"
 MARIADB_VERSIONS["3.8"]="10.2.32-r0"
 MARIADB_VERSIONS["3.7"]="10.1.41-r0"
 
+#The date of version PHP
+declare -A MARIADB_VERSIONS_DATE
+MARIADB_VERSIONS_DATE["edge"]=""
+MARIADB_VERSIONS_DATE["3.13"]="Nov 11, 2020"
+MARIADB_VERSIONS_DATE["3.12"]=""
+MARIADB_VERSIONS_DATE["3.11"]=""
+MARIADB_VERSIONS_DATE["3.10"]=""
+MARIADB_VERSIONS_DATE["3.9"]=""
+MARIADB_VERSIONS_DATE["3.8"]=""
+MARIADB_VERSIONS_DATE["3.7"]=""
+
 # Loop through arguments and process them
 for arg in "$@"
 do
@@ -29,6 +40,10 @@ do
         ALPINE_VERSION="${arg#*=}"
         shift # Remove
         ;;
+        -avd=*|--alpine-version-date=*)
+        ALPINE_VERSION_DATE="${arg#*=}"
+        shift # Remove
+        ;;
         -r=*|--release=*)
         RELEASE="${arg#*=}"
         shift # Remove
@@ -36,24 +51,35 @@ do
         -h|--help)
         echo -e "usage "
         echo -e "$0 "
-        echo -e "  -ar=|--alpine-release=${ALPINE_RELEASE} -> alpine release"
-        echo -e "  -av=|--alpine-version=${ALPINE_VERSION} -> alpine version"
-        echo -e "  -r=|--release=${RELEASE} -> release of image"
+        echo -e "  -av=|--alpine-release -> ${ALPINE_RELEASE} (alpine release)"
+        echo -e "  -av=|--alpine-version -> ${ALPINE_VERSION} (alpine version)"
+        echo -e "  -avd=|--alpine-version-date -> ${ALPINE_VERSION_DATE} (alpine version date)"
+        echo -e "  -r=|--release -> ${RELEASE} (release of image.Values: TEST, CURRENT, LATEST)"
         echo -e ""
         echo -e "  Version of MariaDB installed is ${MARIADB_VERSIONS["$ALPINE_RELEASE"]}"
+        echo -e "  Version of MariaDB Date is ${MARIADB_VERSIONS_DATE["$ALPINE_RELEASE"]}"
         exit 0
         ;;
     esac
 done
 
 MARIADB_VERSION=${MARIADB_VERSIONS["$ALPINE_RELEASE"]}
+MARIADB_VERSIONS_DATE=${MARIADB_VERSIONS_DATE["$ALPINE_RELEASE"]}
 
 echo "# Image               : ${IMAGE}"
 echo "# Image Release       : ${RELEASE}"
 echo "# Build Date          : ${BUILD_DATE}"
 echo "# Alpine Release      : ${ALPINE_RELEASE}"
 echo "# Alpine Version      : ${ALPINE_VERSION}"
+echo "# Alpine Version Date : ${ALPINE_VERSION_DATE}"
 echo "# MariaDB Version     : ${MARIADB_VERSION}"
+echo "# MariaDB Version Date: ${MARIADB_VERSION_DATE}"
+
+ALPINE_RELEASE_REPOSITORY=v${ALPINE_RELEASE}
+
+if [ ${ALPINE_RELEASE} == "edge" ]; then
+    ALPINE_RELEASE_REPOSITORY=${ALPINE_RELEASE}
+fi
 
 if [ "$RELEASE" == "TEST" ]; then
     echo "Remove image ${IMAGE}:test"
@@ -63,7 +89,7 @@ if [ "$RELEASE" == "TEST" ]; then
     docker rmi -f ${IMAGE}:${MARIADB_VERSION}-test > /dev/null 2>&1
 
     echo "Build Image: ${IMAGE} -> ${RELEASE}"
-    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg MARIADB_VERSION=${MARIADB_VERSION} -t ${IMAGE}:test -t ${IMAGE}:${MARIADB_VERSION}-test -f ./Dockerfile .
+    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_RELEASE_REPOSITORY=${ALPINE_RELEASE_REPOSITORY} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg ALPINE_VERSION_DATE="${ALPINE_VERSION_DATE}" --build-arg MARIADB_VERSION=${MARIADB_VERSION} --build-arg MARIADB_VERSION_DATE="${MARIADB_VERSION_DATE}" -t ${IMAGE}:test -t ${IMAGE}:${MARIADB_VERSION}-test -f ./Dockerfile .
 
     echo "Login Docker HUB"
     echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
@@ -84,7 +110,7 @@ elif [ "$RELEASE" == "CURRENT" ]; then
     docker rmi -f ${IMAGE}:${MARIADB_VERSION}-x86_64 > /dev/null 2>&1
 
     echo "Build Image: ${IMAGE}:${MARIADB_VERSION} -> ${RELEASE}"
-    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg MARIADB_VERSION=${MARIADB_VERSION} -t ${IMAGE}:${MARIADB_VERSION} -t ${IMAGE}:${MARIADB_VERSION}-amd64 -t ${IMAGE}:${MARIADB_VERSION}-x86_64 -f ./Dockerfile .
+    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_RELEASE_REPOSITORY=${ALPINE_RELEASE_REPOSITORY} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg ALPINE_VERSION_DATE="${ALPINE_VERSION_DATE}" --build-arg MARIADB_VERSION=${MARIADB_VERSION} --build-arg MARIADB_VERSION_DATE="${MARIADB_VERSION_DATE}" -t ${IMAGE}:${MARIADB_VERSION} -t ${IMAGE}:${MARIADB_VERSION}-amd64 -t ${IMAGE}:${MARIADB_VERSION}-x86_64 -f ./Dockerfile .
 
     echo "Login Docker HUB"
     echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin
@@ -108,7 +134,7 @@ else
     docker rmi -f ${IMAGE}:x86_64 > /dev/null 2>&1
 
     echo "Build Image: ${IMAGE} -> ${RELEASE}"
-    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg MARIADB_VERSION=${MARIADB_VERSION} -t ${IMAGE}:latest -t ${IMAGE}:amd64 -t ${IMAGE}:x86_64 -f ./Dockerfile .
+    docker build --build-arg BUILD_DATE=${BUILD_DATE} --build-arg ALPINE_RELEASE=${ALPINE_RELEASE} --build-arg ALPINE_RELEASE_REPOSITORY=${ALPINE_RELEASE_REPOSITORY} --build-arg ALPINE_VERSION=${ALPINE_VERSION} --build-arg ALPINE_VERSION_DATE="${ALPINE_VERSION_DATE}" --build-arg MARIADB_VERSION=${MARIADB_VERSION} --build-arg MARIADB_VERSION_DATE="${MARIADB_VERSION_DATE}" -t ${IMAGE}:latest -t ${IMAGE}:amd64 -t ${IMAGE}:x86_64 -f ./Dockerfile .
 
     echo "Login Docker HUB"
     echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin

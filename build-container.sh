@@ -4,19 +4,10 @@
 #
 source ./.env
 
-declare -A MARIADB_VERSIONS
-MARIADB_VERSIONS["3.13"]="10.5.8-r0"
-MARIADB_VERSIONS["3.12"]="10.4.17-r1"
-MARIADB_VERSIONS["3.11"]="10.4.17-r1"
-MARIADB_VERSIONS["3.10"]="10.3.27-r0"
-MARIADB_VERSIONS["3.9"]="10.3.25-r0"
-MARIADB_VERSIONS["3.8"]="10.2.32-r0"
-MARIADB_VERSIONS["3.7"]="10.1.41-r0"
-
 # Default values of arguments
 IMAGE=maurosoft1973/alpine-mariadb
-IMAGE_RELEASE=latest
-CONTAINER=mariadb-test
+IMAGE_TAG=latest
+CONTAINER=alpine-mariadb
 LC_ALL=it_IT.UTF-8
 TIMEZONE=Europe/Rome
 IP=0.0.0.0
@@ -35,27 +26,27 @@ MYSQL_ROOT_PASSWORD=root
 for arg in "$@"
 do
     case $arg in
-        -ir=*|--image-release=*)
-        IMAGE_RELEASE="${arg#*=}"
+        -it=*|--image-tag=*)
+        IMAGE_TAG="${arg#*=}"
         shift # Remove
         ;;
-        -c=*|--container=*)
+        -cn=*|--container=*)
         CONTAINER="${arg#*=}"
         shift # Remove
         ;;
-        -l=*|--lc_all=*)
+        -cl=*|--lc_all=*)
         LC_ALL="${arg#*=}"
         shift # Remove
         ;;
-        -t=*|--timezone=*)
+        -ct=*|--timezone=*)
         TIMEZONE="${arg#*=}"
         shift # Remove
         ;;
-        -i=*|--ip=*)
+        -ci=*|--ip=*)
         IP="${arg#*=}"
         shift # Remove
         ;;
-        -p=*|--port=*)
+        -cp=*|--port=*)
         PORT="${arg#*=}"
         shift # Remove
         ;;
@@ -82,17 +73,17 @@ do
         -h|--help)
         echo -e "usage "
         echo -e "$0 "
-        echo -e "  -ir=|--image-release -> ${IMAGE}:${IMAGE_RELEASE} (image with release)"
-        echo -e "  -c=|--container -> ${CONTAINER} (name of container)"
-        echo -e "  -l=|--lc-all=${LC_ALL} -> locale"
-        echo -e "  -t=|--timezone=${TIMEZONE} -> timezone"
-        echo -e "  -i=|--ip -> ${IP} (address ip listen)"
-        echo -e "  -p=|--port -> ${PORT}:3306 (port listen)"
+        echo -e "  -it=|--image-tag -> ${IMAGE}:${IMAGE_TAG} (image with tag)"
+        echo -e "  -cn=|--container -> ${CONTAINER} (container name)"
+        echo -e "  -cl=|--lc_all -> ${LC_ALL} (container locale)"
+        echo -e "  -ct=|--timezone -> ${TIMEZONE} (container timezone)"
+        echo -e "  -ci=|--ip -> ${IP} (container ip)"
+        echo -e "  -cp=|--port -> ${PORT}:3306 (port listen)"
         echo -e "  -dd=|--data-directory -> ${MYSQL_DATA} (path of data)"
         echo -e "  -du=|--data-user -> ${MYSQL_DATA_USER} (mysql owner data directory)"
         echo -e "  -dui=|--data-user-uid -> ${MYSQL_DATA_USER_UID} (mysql owner data directory uid)"
         echo -e "  -dg=|--data-group -> ${MYSQL_DATA_GROUP} (mysql group data directory)"
-        echo -e "  -dgi=|--data-group-uid -> ${MYSQL_DATA_GROUP_UID} (mysql group data directory uid)"
+        echo -e "  -dgi=|--data-group-gid -> ${MYSQL_DATA_GROUP_UID} (mysql group data directory gid)"
         echo -e "  -db=|--database -> ${MYSQL_DATABASE} (name of database)"
         echo -e "  -us=|--user -> ${MYSQL_USER} (mysql user)"
         echo -e "  -up=|--password -> ${MYSQL_PASSWORD} (mysql password)"
@@ -102,21 +93,21 @@ do
     esac
 done
 
-echo "# Image               : ${IMAGE}:${IMAGE_RELEASE}"
-echo "# Container Name      : ${CONTAINER}"
-echo "# Locale              : ${LC_ALL}"
-echo "# Timezone            : ${TIMEZONE}"
-echo "# IP Listen           : ${IP}"
-echo "# PORT Listen         : ${PORT}"
-echo "# MYSQL Data          : ${MYSQL_DATA}"
-echo "# MYSQL Data User     : ${MYSQL_DATA_USER}"
-echo "# MYSQL Data User UID : ${MYSQL_DATA_USER_UID}"
-echo "# MYSQL Data Group    : ${MYSQL_DATA_GROUP}"
-echo "# MYSQL Data Group UID: ${MYSQL_DATA_GROUP_UID}"
-echo "# MYSQL Database      : ${MYSQL_DATABASE}"
-echo "# MYSQL User          : ${MYSQL_USER}"
-echo "# MYSQL Password      : ${MYSQL_PASSWORD}"
-echo "# MYSQL Root Password : ${MYSQL_ROOT_PASSWORD}"
+echo "# Image                   : ${IMAGE}:${IMAGE_TAG}"
+echo "# Container Name          : ${CONTAINER}"
+echo "# Container Locale        : ${LC_ALL}"
+echo "# Container Timezone      : ${TIMEZONE}"
+echo "# Container IP            : $IP"
+echo "# Container Port Listen   : ${PORT}"
+echo "# MYSQL Data              : ${MYSQL_DATA}"
+echo "# MYSQL Data User         : ${MYSQL_DATA_USER}"
+echo "# MYSQL Data User UID     : ${MYSQL_DATA_USER_UID}"
+echo "# MYSQL Data Group        : ${MYSQL_DATA_GROUP}"
+echo "# MYSQL Data Group UID    : ${MYSQL_DATA_GROUP_UID}"
+echo "# MYSQL Database          : ${MYSQL_DATABASE}"
+echo "# MYSQL User              : ${MYSQL_USER}"
+echo "# MYSQL Password          : ${MYSQL_PASSWORD}"
+echo "# MYSQL Root Password     : ${MYSQL_ROOT_PASSWORD}"
 
 echo -e "Check if container ${CONTAINER} exist"
 CHECK=$(docker container ps -a | grep ${CONTAINER} | wc -l)
@@ -138,7 +129,7 @@ if [ ${CHECK} == 1 ]; then
 fi
 
 echo -e "Create and run container"
-docker run -idt --name ${CONTAINER} -p ${IP}:${PORT}:3306 -v ${MYSQL_DATA}:/var/lib/mysql -v $(pwd)/pre-init.d:/scripts/pre-init.d -e LC_ALL=${LC_ALL} -e TIMEZONE=${TIMEZONE} -e MYSQL_DATABASE=${MYSQL_DATABASE} -e MYSQL_DATA_USER=${MYSQL_DATA_USER} -e MYSQL_DATA_USER_UID=${MYSQL_DATA_USER_UID} -e MYSQL_DATA_GROUP=${MYSQL_DATA_GROUP} -e MYSQL_DATA_GROUP_UID=${MYSQL_DATA_GROUP_UID} -e MYSQL_USER=${MYSQL_USER} -e MYSQL_PASSWORD=${MYSQL_PASSWORD} -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} ${IMAGE}:${IMAGE_RELEASE}
+docker run -idt --name ${CONTAINER} -p ${IP}:${PORT}:3306 -v ${MYSQL_DATA}:/var/lib/mysql -v $(pwd)/pre-init.d:/scripts/pre-init.d -e LC_ALL=${LC_ALL} -e TIMEZONE=${TIMEZONE} -e MYSQL_DATABASE=${MYSQL_DATABASE} -e MYSQL_DATA_USER=${MYSQL_DATA_USER} -e MYSQL_DATA_USER_UID=${MYSQL_DATA_USER_UID} -e MYSQL_DATA_GROUP=${MYSQL_DATA_GROUP} -e MYSQL_DATA_GROUP_UID=${MYSQL_DATA_GROUP_UID} -e MYSQL_USER=${MYSQL_USER} -e MYSQL_PASSWORD=${MYSQL_PASSWORD} -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} ${IMAGE}:${IMAGE_TAG}
 
 echo -e "Sleep 5 second"
 sleep 5
