@@ -40,7 +40,6 @@ if [ "${MYSQL_DATA_USER}" != "mysql" ]; then
     echo "[mysqld]" >> /etc/my.cnf.d/mariadb-server.cnf
     #echo "innodb_flush_method=O_DIRECT" >> /etc/my.cnf.d/mariadb-server.cnf
     echo "innodb_use_native_aio=0" >> /etc/my.cnf.d/mariadb-server.cnf
-    cat /etc/my.cnf.d/mariadb-server.cnf
 fi
 
 # execute any pre-init scripts
