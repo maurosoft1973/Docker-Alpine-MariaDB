@@ -5,12 +5,12 @@
 [![Docker Stars](https://img.shields.io/docker/stars/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 
 [![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.13.2-green.svg?style=for-the-badge)](https://alpinelinux.org/)
-[![MariaDB Version](https://img.shields.io/badge/Mariadb%20version-v10.5.8-green.svg?style=for-the-badge)](https://mariadb.org/)
+[![MariaDB Version](https://img.shields.io/docker/v/maurosoft1973/alpine-mariadb?sort=semver&style=for-the-badge)](https://mariadb.org/)
 
 
 This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.5.8-r0](https://mariadb.org/) (MySQL Compatible) database server.
 
-##### Alpine Version 3.13.2 (Released Feb 17, 2021)
+##### Alpine Version 3.13.2 (Released Feb Feb 17, 2021)
 ##### MariaDB Version 10.5.8-r0
 
 ----
@@ -40,32 +40,34 @@ MariaDB is developed as open source software and as a relational database it pro
 ## Tags
 
 * ```:latest``` latest branch based (Automatic Architecture Selection)
-* ```:master``` master branch usually inline with latest
 * ```:amd64```, ```:x86_64```  amd64 based on latest tag but amd64 architecture
 
 ## Layers & Sizes
 
 ![Version](https://img.shields.io/badge/version-amd64-blue.svg?style=for-the-badge)
 ![MicroBadger Layers (tag)](https://img.shields.io/microbadger/layers/maurosoft1973/alpine-mariadb/amd64.svg?style=for-the-badge)
-![MicroBadger Size (tag)](https://img.shields.io/microbadger/image-size/maurosoft1973/alpine-mariadb/amd64.svg?style=for-the-badge)
+![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/latest?style=for-the-badge)
 
 ## Volume structure
 
 * `/var/lib/mysql`: Database files
 * `/var/lib/mysql/mysql-bin`: MariaDB logs
 
-
 ## Environment Variables:
 
-### Main Mariadb parameters:
+### Main MariaDB parameters:
+* `LC_ALL`: default locale (en_GB.UTF-8)
+* `TIMEZONE`: default timezone (Europe/Brussels)
+* `MYSQL_DATA_USER`: specify the mysql owner data directory (default mysql)
+* `MYSQL_DATA_USER_UID`: specify the uid for mysql owner data directory (default 100)
+* `MYSQL_DATA_GROUP`: specify the mysql group data directory (default mysql)
+* `MYSQL_DATA_GROUP_UID`: specify the gid for mysql group data directory (default 101)
 * `MYSQL_DATABASE`: specify the name of the database
+* `MYSQL_CHARSET`: default charset (utf8) for Mariadb
+* `MYSQL_COLLATION`: default collation (utf8_general_ci) for Mariadb
 * `MYSQL_USER`: specify the User for the database
 * `MYSQL_PASSWORD`: specify the User password for the database
 * `MYSQL_ROOT_PASSWORD`: specify the root password for Mariadb
-* `MYSQL_CHARSET`: default charset (utf8) for Mariadb
-* `MYSQL_COLLATION`: default collation (utf8_general_ci) for Mariadb
-* `LC_ALL`: default locale (en_GB.UTF-8)
-* `TIMEZONE`: default timezone (Europe/Brussels)
 
 #### List of locale Sets
 
@@ -186,3 +188,5 @@ mysql:
     - /var/data/mysql:/var/lib/mysql
   restart: always
 ```
+***
+###### Last Update 25.03.2021 14:48:13
