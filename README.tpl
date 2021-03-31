@@ -7,7 +7,6 @@
 [![Alpine Version](https://img.shields.io/badge/Alpine%20version-v%ALPINE_VERSION%-green.svg?style=for-the-badge)](https://alpinelinux.org/)
 [![MariaDB Version](https://img.shields.io/docker/v/maurosoft1973/alpine-mariadb?sort=semver&style=for-the-badge)](https://mariadb.org/)
 
-
 This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v%MARIADB_VERSION%](https://mariadb.org/) (MySQL Compatible) database server.
 
 ##### Alpine Version %ALPINE_VERSION% (Released Feb %ALPINE_VERSION_DATE%)
@@ -188,5 +187,6 @@ mysql:
     - /var/data/mysql:/var/lib/mysql
   restart: always
 ```
+
 ***
 ###### Last Update %LAST_UPDATE%

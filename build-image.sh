@@ -2,29 +2,17 @@
 # Description: Build image and push to repository
 # Maintainer: Mauro Cardillo
 # DOCKER_HUB_USER and DOCKER_HUB_PASSWORD is user environment variable
+echo "Get Remote Environment Variable"
+wget -q "https://gitlab.com/maurosoft1973-docker/alpine-variable/-/raw/master/.env" -O ./.env
 source ./.env
+
+echo "Get Remote Settings"
+wget -q "https://gitlab.com/maurosoft1973-docker/alpine-variable/-/raw/master/settings.sh" -O ./settings.sh
+chmod +x ./settings.sh
+source ./settings.sh
 
 BUILD_DATE=$(date +"%Y-%m-%d")
 IMAGE=maurosoft1973/alpine-mariadb
-
-#The version of MariaDB is 
-declare -A MARIADB_VERSIONS
-MARIADB_VERSIONS["3.13"]="10.5.8"
-MARIADB_VERSIONS["3.12"]="10.4.17"
-MARIADB_VERSIONS["3.11"]="10.4.17"
-MARIADB_VERSIONS["3.10"]="10.3.27"
-MARIADB_VERSIONS["3.9"]="10.3.25"
-MARIADB_VERSIONS["3.8"]="10.2.32"
-
-#The date of version PHP
-declare -A MARIADB_VERSIONS_DATE
-MARIADB_VERSIONS_DATE["edge"]=""
-MARIADB_VERSIONS_DATE["3.13"]="Nov 11, 2020"
-MARIADB_VERSIONS_DATE["3.12"]=""
-MARIADB_VERSIONS_DATE["3.11"]=""
-MARIADB_VERSIONS_DATE["3.10"]=""
-MARIADB_VERSIONS_DATE["3.9"]=""
-MARIADB_VERSIONS_DATE["3.8"]=""
 
 # Loop through arguments and process them
 for arg in "$@"
@@ -146,3 +134,6 @@ else
     echo "Push Image -> ${IMAGE}:latest"
     docker push ${IMAGE}:latest
 fi
+
+rm -rf ./.env
+rm -rf ./settings.sh

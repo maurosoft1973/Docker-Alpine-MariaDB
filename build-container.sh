@@ -2,7 +2,14 @@
 # Description: Script for alpine mariadb container
 # Maintainer: Mauro Cardillo
 #
+echo "Get Remote Environment Variable"
+wget -q "https://gitlab.com/maurosoft1973-docker/alpine-variable/-/raw/master/.env" -O ./.env
 source ./.env
+
+echo "Get Remote Settings"
+wget -q "https://gitlab.com/maurosoft1973-docker/alpine-variable/-/raw/master/settings.sh" -O ./settings.sh
+chmod +x ./settings.sh
+source ./settings.sh
 
 # Default values of arguments
 IMAGE=maurosoft1973/alpine-mariadb
@@ -152,3 +159,6 @@ docker exec -it $CONTAINER mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DAT
 echo -e ""
 echo -e "Container Logs"
 docker logs ${CONTAINER}
+
+rm -rf ./.env
+rm -rf ./settings.sh
