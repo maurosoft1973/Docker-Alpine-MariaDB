@@ -4,14 +4,13 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 [![Docker Stars](https://img.shields.io/docker/stars/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 
-[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.13.2-green.svg?style=for-the-badge)](https://alpinelinux.org/)
+[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.13.3-green.svg?style=for-the-badge)](https://alpinelinux.org/)
 [![MariaDB Version](https://img.shields.io/docker/v/maurosoft1973/alpine-mariadb?sort=semver&style=for-the-badge)](https://mariadb.org/)
 
+This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v](https://mariadb.org/) (MySQL Compatible) database server.
 
-This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.5.8-r0](https://mariadb.org/) (MySQL Compatible) database server.
-
-##### Alpine Version 3.13.2 (Released Feb Feb 17, 2021)
-##### MariaDB Version 10.5.8-r0
+##### Alpine Version 3.13.3 (Released Feb Mar 25, 2021)
+##### MariaDB Version 
 
 ----
 
@@ -188,5 +187,6 @@ mysql:
     - /var/data/mysql:/var/lib/mysql
   restart: always
 ```
+
 ***
-###### Last Update 25.03.2021 14:48:13
+###### Last Update 31.03.2021 14:22:33
