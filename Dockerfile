@@ -1,8 +1,10 @@
-FROM maurosoft1973/alpine
+ARG DOCKER_ALPINE_VERSION
+
+FROM maurosoft1973/alpine:$DOCKER_ALPINE_VERSION
 
 ARG BUILD_DATE
+ARG ALPINE_ARCHITECTURE
 ARG ALPINE_RELEASE
-ARG ALPINE_RELEASE_REPOSITORY
 ARG ALPINE_VERSION
 ARG ALPINE_VERSION_DATE
 ARG MARIADB_VERSION
@@ -10,7 +12,7 @@ ARG MARIADB_VERSION_DATE
 
 LABEL \
     maintainer="Mauro Cardillo <mauro.cardillo@gmail.com>" \
-    architecture="amd64/x86_64" \
+    architecture="$ALPINE_ARCHITECTURE" \
     mariadb-version="$MARIADB_VERSION" \
     alpine-version="$ALPINE_VERSION" \
     build="$BUILD_DATE" \
@@ -25,8 +27,8 @@ LABEL \
 
 RUN \
     echo "" > /etc/apk/repositories && \
-    echo "https://dl-cdn.alpinelinux.org/alpine/$ALPINE_RELEASE_REPOSITORY/main" >> /etc/apk/repositories && \
-    echo "https://dl-cdn.alpinelinux.org/alpine/$ALPINE_RELEASE_REPOSITORY/community" >> /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/main" >> /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/community" >> /etc/apk/repositories && \
     apk update && \
     apk add --no-cache mariadb mariadb-client mariadb-server-utils pwgen && \
     mkdir /docker-entrypoint-initdb.d && \
@@ -41,5 +43,6 @@ RUN chmod -R 755 /scripts
 EXPOSE 3306
 
 VOLUME ["/var/lib/mysql"]
+VOLUME ["/etc/my.cnf.d"]
 
 ENTRYPOINT ["/scripts/run-alpine-mariadb.sh"]
