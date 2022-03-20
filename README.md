@@ -1,16 +1,16 @@
-# MariaDB Docker image running on Alpine Linux
+# MariaDB Docker Image with Multilanguage e Timezone support running on Alpine Linux
 
 [![Docker Automated build](https://img.shields.io/docker/automated/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 [![Docker Stars](https://img.shields.io/docker/stars/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 
-[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.14.1-green.svg?style=for-the-badge)](https://alpinelinux.org/)
+[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.15.0-green.svg?style=for-the-badge)](https://alpinelinux.org/)
 [![MariaDB Version](https://img.shields.io/docker/v/maurosoft1973/alpine-mariadb?sort=semver&style=for-the-badge)](https://mariadb.org/)
 
-This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v](https://mariadb.org/) (MySQL Compatible) database server.
+This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.6.7-r0](https://mariadb.org/) (MySQL Compatible) database server.
 
-##### Alpine Version 3.14.1 (Released Feb Aug 04, 2021)
-##### MariaDB Version 
+##### Alpine Version 3.15.0 (Released Feb Nov 24 2021)
+##### MariaDB Version 10.6.7-r0
 
 ----
 
@@ -34,21 +34,50 @@ MariaDB is developed as open source software and as a relational database it pro
 
 ## Architectures
 
-* ```:amd64```, ```:x86_64``` - 64 bit Intel/AMD (x86_64/amd64)
+* ```:aarch64``` - 64 bit ARM
+* ```:armhf```   - 32 bit ARM v6
+* ```:armv7```   - 32 bit ARM v7
+* ```:ppc64le``` - 64 bit PowerPC
+* ```:x86```     - 32 bit Intel/AMD
+* ```:x86_64```  - 64 bit Intel/AMD (x86_64/amd64)
 
 ## Tags
 
-* ```:latest``` latest branch based (Automatic Architecture Selection)
-* ```:amd64```, ```:x86_64```  amd64 based on latest tag but amd64 architecture
+* ```:latest```         latest branch based (Automatic Architecture Selection)
+* ```:aarch64```        latest 64 bit ARM
+* ```:armhf```          latest 32 bit ARM v6
+* ```:armv7```          latest 32 bit ARM v7
+* ```:ppc64le```        latest 64 bit PowerPC
+* ```:x86```            latest 32 bit Intel/AMD
+* ```:x86_64```         latest 64 bit Intel/AMD
+* ```:test```           test branch based (Automatic Architecture Selection)
+* ```:test-aarch64```   test 64 bit ARM
+* ```:test-armhf```     test 32 bit ARM v6
+* ```:test-armv7```     test 32 bit ARM v7
+* ```:test-ppc64le```   test 64 bit PowerPC
+* ```:test-x86```       test 32 bit Intel/AMD
+* ```:test-x86_64```    test 64 bit Intel/AMD
+* ```:3.15.0-10.6.7-r0``` 3.15.0-10.6.7-r0 branch based (Automatic Architecture Selection)
+* ```:3.15.0-10.6.7-r0-aarch64```   3.15.0 64 bit ARM
+* ```:3.15.0-10.6.7-r0-armhf```     3.15.0 32 bit ARM v6
+* ```:3.15.0-10.6.7-r0-armv7```     3.15.0 32 bit ARM v7
+* ```:3.15.0-10.6.7-r0-ppc64le```   3.15.0 64 bit PowerPC
+* ```:3.15.0-10.6.7-r0-x86```       3.15.0 32 bit Intel/AMD
+* ```:3.15.0-10.6.7-r0-x86_64```    3.15.0 64 bit Intel/AMD
 
 ## Layers & Sizes
 
-![Version](https://img.shields.io/badge/version-amd64-blue.svg?style=for-the-badge)
-![MicroBadger Layers (tag)](https://img.shields.io/microbadger/layers/maurosoft1973/alpine-mariadb/amd64.svg?style=for-the-badge)
-![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/latest?style=for-the-badge)
+| Version                                                                               | Size                                                                                                                 |
+|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| ![Version](https://img.shields.io/badge/version-amd64-blue.svg?style=for-the-badge)   | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/latest?style=for-the-badge)  |
+| ![Version](https://img.shields.io/badge/version-armv6-blue.svg?style=for-the-badge)   | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/armhf?style=for-the-badge)   |
+| ![Version](https://img.shields.io/badge/version-armv7-blue.svg?style=for-the-badge)   | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/armv7?style=for-the-badge)   |
+| ![Version](https://img.shields.io/badge/version-ppc64le-blue.svg?style=for-the-badge) | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/ppc64le?style=for-the-badge) |
+| ![Version](https://img.shields.io/badge/version-x86-blue.svg?style=for-the-badge)     | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/x86?style=for-the-badge)     |
 
 ## Volume structure
 
+* `/etc/my.cnf.d`: MariaDB Configuration file
 * `/var/lib/mysql`: Database files
 * `/var/lib/mysql/mysql-bin`: MariaDB logs
 
@@ -64,8 +93,8 @@ MariaDB is developed as open source software and as a relational database it pro
 * `MYSQL_DATABASE`: specify the name of the database
 * `MYSQL_CHARSET`: default charset (utf8) for Mariadb
 * `MYSQL_COLLATION`: default collation (utf8_general_ci) for Mariadb
-* `MYSQL_USER`: specify the User for the database
-* `MYSQL_PASSWORD`: specify the User password for the database
+* `MYSQL_USER`: specify the user for the database
+* `MYSQL_PASSWORD`: specify the user password for the database
 * `MYSQL_ROOT_PASSWORD`: specify the root password for Mariadb
 
 #### List of locale Sets
@@ -76,16 +105,18 @@ When setting locale, also make sure to choose a locale otherwise it will be the 
 +-----------------+
 | Locale          |
 +-----------------+
-| ch_DE.UTF-8     |
+| fr_CH.UTF-8     |
 | fr_FR.UTF-8     |
 | de_CH.UTF-8     |
 | de_DE.UTF-8     |
 | en_GB.UTF-8     |
 | en_US.UTF-8     |
 | es_ES.UTF-8     |
+| it_CH.UTF-8     |
 | it_IT.UTF-8     |
-| nb_NO.UTF-8     | 
+| nb_NO.UTF-8     |
 | nl_NL.UTF-8     |
+| pt_PT.UTF-8     |
 | pt_BR.UTF-8     |
 | ru_RU.UTF-8     |
 | sv_SE.UTF-8     |
@@ -189,4 +220,4 @@ mysql:
 ```
 
 ***
-###### Last Update 08.11.2021 04:07:13
+###### Last Update 20.03.2022 14:49:56
