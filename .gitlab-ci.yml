@@ -34,7 +34,6 @@ before_script:
     - echo "ALPINE_RELEASE:$JOB_ALPINE_RELEASE"
     - echo "MARIADB_VERSION:$JOB_MARIADB_VERSION"
     - echo "MARIADB_VERSION_DATE:$JOB_MARIADB_VERSION_DATE"
-    - exit 1
 
 build-test:
     stage: build
