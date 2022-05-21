@@ -7,10 +7,10 @@
 [![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.15.4-green.svg?style=for-the-badge)](https://alpinelinux.org/)
 [![MariaDB Version](https://img.shields.io/docker/v/maurosoft1973/alpine-mariadb?sort=semver&style=for-the-badge)](https://mariadb.org/)
 
-This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.6.7-r0](https://mariadb.org/) (MySQL Compatible) database server.
+This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.6.8-r0](https://mariadb.org/) (MySQL Compatible) database server.
 
 ##### Alpine Version 3.15.4 (Released Feb Apr 04 2022)
-##### MariaDB Version 10.6.7-r0
+##### MariaDB Version 10.6.8-r0
 
 ----
 
@@ -57,13 +57,13 @@ MariaDB is developed as open source software and as a relational database it pro
 * ```:test-ppc64le```   test 64 bit PowerPC
 * ```:test-x86```       test 32 bit Intel/AMD
 * ```:test-x86_64```    test 64 bit Intel/AMD
-* ```:3.15.4-10.6.7-r0``` 3.15.4-10.6.7-r0 branch based (Automatic Architecture Selection)
-* ```:3.15.4-10.6.7-r0-aarch64```   3.15.4 64 bit ARM
-* ```:3.15.4-10.6.7-r0-armhf```     3.15.4 32 bit ARM v6
-* ```:3.15.4-10.6.7-r0-armv7```     3.15.4 32 bit ARM v7
-* ```:3.15.4-10.6.7-r0-ppc64le```   3.15.4 64 bit PowerPC
-* ```:3.15.4-10.6.7-r0-x86```       3.15.4 32 bit Intel/AMD
-* ```:3.15.4-10.6.7-r0-x86_64```    3.15.4 64 bit Intel/AMD
+* ```:3.15.4-10.6.8-r0``` 3.15.4-10.6.8-r0 branch based (Automatic Architecture Selection)
+* ```:3.15.4-10.6.8-r0-aarch64```   3.15.4 64 bit ARM
+* ```:3.15.4-10.6.8-r0-armhf```     3.15.4 32 bit ARM v6
+* ```:3.15.4-10.6.8-r0-armv7```     3.15.4 32 bit ARM v7
+* ```:3.15.4-10.6.8-r0-ppc64le```   3.15.4 64 bit PowerPC
+* ```:3.15.4-10.6.8-r0-x86```       3.15.4 32 bit Intel/AMD
+* ```:3.15.4-10.6.8-r0-x86_64```    3.15.4 64 bit Intel/AMD
 
 ## Layers & Sizes
 
@@ -220,4 +220,4 @@ mysql:
 ```
 
 ***
-###### Last Update 07.05.2022 14:35:04
+###### Last Update 21.05.2022 19:09:29
