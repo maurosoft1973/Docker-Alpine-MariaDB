@@ -6,12 +6,14 @@ MYSQL_DATA_USER=${MYSQL_DATA_USER:-"mysql"}
 MYSQL_DATA_USER_UID=${MYSQL_DATA_USER_UID:-"100"}
 MYSQL_DATA_GROUP=${MYSQL_DATA_GROUP:-"mysql"}
 MYSQL_DATA_GROUP_UID=${MYSQL_DATA_GROUP_UID:-"101"}
-MYSQL_DATABASE=${MYSQL_DATABASE:-""}
 MYSQL_CHARSET=${MYSQL_CHARSET:-"utf8"}
 MYSQL_COLLATION=${MYSQL_COLLATION:-"utf8_general_ci"}
-MYSQL_USER=${MYSQL_USER:-""}
+MYSQL_DATABASE=${MYSQL_DATABASE:-"demo"}
+MYSQL_USER=${MYSQL_USER:-"demo"}
 MYSQL_PASSWORD=${MYSQL_PASSWORD:-""}
+MYSQL_PASSWORD_LENGTH=${MYSQL_PASSWORD_LENGTH:-30}
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-""}
+MYSQL_ROOT_PASSWORD_LENGTH=${MYSQL_ROOT_PASSWORD_LENGTH:-30}
 
 echo "MYSQL_DATA_USER: ${MYSQL_DATA_USER}"
 echo "MYSQL_DATA_USER_UID: ${MYSQL_DATA_USER_UID}"
@@ -38,7 +40,6 @@ fi
 
 if [ "${MYSQL_DATA_USER}" != "mysql" ]; then
     echo "[mysqld]" >> /etc/my.cnf.d/mariadb-server.cnf
-    #echo "innodb_flush_method=O_DIRECT" >> /etc/my.cnf.d/mariadb-server.cnf
     echo "innodb_use_native_aio=0" >> /etc/my.cnf.d/mariadb-server.cnf
 fi
 
@@ -70,8 +71,8 @@ else
 
     mysql_install_db --user=$MYSQL_DATA_USER --ldata=/var/lib/mysql
 
-    if [ "$MYSQL_ROOT_PASSWORD" = "" ]; then
-        MYSQL_ROOT_PASSWORD=`pwgen -s 25 1`
+    if [ "$MYSQL_ROOT_PASSWORD" == "" ]; then
+        MYSQL_ROOT_PASSWORD=`pwgen -s $MYSQL_ROOT_PASSWORD_LENGTH 1`
         echo "[i] MySQL root Password: $MYSQL_ROOT_PASSWORD"
     fi
 
@@ -95,6 +96,11 @@ EOF
         echo "[i] with character set [$MYSQL_CHARSET] and collation [$MYSQL_COLLATION]"
 
         echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET $MYSQL_CHARSET COLLATE $MYSQL_COLLATION;" >> $tfile
+
+        if [ "$MYSQL_PASSWORD" == "" ]; then
+            MYSQL_PASSWORD=`pwgen -s $MYSQL_PASSWORD_LENGTH 1`
+            echo "[i] MySQL User Password: $MYSQL_PASSWORD"
+        fi
 
         if [ "$MYSQL_USER" != "" ]; then
             echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
