@@ -1,173 +1,373 @@
-image: maurosoft1973/docker-with-buildx2
+image: docker:23.0.4
 
 variables:
+    # DOCKER_HOST
+    # DOCKER_HUB_USERNAME
+    # DOCKER_HUB_PASSWORD
+    # GITLAB_TOKEN
+    DOCKER_HOST: $DOCKER_HOST
+    DOCKER_TLS_CERTDIR: ""
     DOCKER_CLI_EXPERIMENTAL: enabled
+    DOCKER_DRIVER: overlay2
+    DOCKER_IMAGE_TEST: registry.gitlab.com/maurosoft1973-docker/alpine-mariadb
 
+services:
+    - name: docker:23.0.4-dind
+      alias: docker
+
+include:
+    - template: Jobs/Build.gitlab-ci.yml
+    - template: Security/Container-Scanning.gitlab-ci.yml
+    
 stages:
+    - test
+    - scanning
     - build
-    - push
     - readme
+    - clean
 
 before_script:
-    - apk add --no-cache bash curl file jq
+    - apk add --no-cache git bash curl file
     - /bin/bash
-    - ENV_ALPINE_VERSION=.${CI_ALPINE_VERSION:-""}
-    - >
-      if [ "${CI_ALPINE_VERSION:-""}" == "" ]; then 
-         ENV_ALPINE_VERSION=.env
-      else
-         ENV_ALPINE_VERSION=.env.${CI_ALPINE_VERSION:-""}
-      fi
-    - echo ${ENV_ALPINE_VERSION}
+    - ENV_JOB=.${CI_ALPINE_VERSION:-""}
+    - |
+        if [ "${CI_ALPINE_VERSION:-""}" == "" ]; then 
+            ENV_JOB=.env
+        else
+            ENV_JOB=.env.${CI_ALPINE_VERSION:-""}
+        fi
     - set -a;
-    - source ./${ENV_ALPINE_VERSION};
+    - source ./${ENV_JOB};
     - set +a;
-    - export JOB_DOCKER_IMAGE=${CI_DOCKER_IMAGE:-"$DOCKER_IMAGE"}
-    - export JOB_ALPINE_VERSION=${CI_ALPINE_VERSION:-"$ALPINE_VERSION"}
-    - export JOB_ALPINE_VERSION_DATE=${CI_ALPINE_VERSION_DATE:-"$ALPINE_VERSION_DATE"}
-    - export JOB_ALPINE_RELEASE=${CI_ALPINE_RELEASE:-"$ALPINE_RELEASE"}
-    - export JOB_MARIADB_VERSION=${CI_MARIADB_VERSION:-"$MARIADB_VERSION"}
-    - export JOB_MARIADB_VERSION_DATE=${CI_MARIADB_VERSION_DATE:-"$MARIADB_VERSION_DATE"}
-    - echo "DOCKER_IMAGE:$JOB_DOCKER_IMAGE"
-    - echo "ALPINE_VERSION:$JOB_ALPINE_VERSION"
-    - echo "ALPINE_VERSION_DATE:$JOB_ALPINE_VERSION_DATE"
-    - echo "ALPINE_RELEASE:$JOB_ALPINE_RELEASE"
-    - echo "MARIADB_VERSION:$JOB_MARIADB_VERSION"
-    - echo "MARIADB_VERSION_DATE:$JOB_MARIADB_VERSION_DATE"
+    - |
+      export JOB_ALPINE_VERSION=${CI_ALPINE_VERSION:-"$ALPINE_VERSION"}
+      export JOB_ALPINE_VERSION_DATE=${CI_ALPINE_VERSION_DATE:-"$ALPINE_VERSION_DATE"}
+      export JOB_ALPINE_RELEASE=${CI_ALPINE_RELEASE:-"$ALPINE_RELEASE"}
 
-build-test:
+build:
+    stage: test
+    image: docker:23.0.4
+    tags:
+        - dind64
+    script:
+        - BUILD_DATE=$(date +"%Y-%m-%d")
+        - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+        - |
+            while IFS=" " read -r JOB_ARCH
+            do
+                PLATFORM="linux/amd64"
+                if [ "${JOB_ARCH}" == "aarch64" ]; then
+                    PLATFORM="linux/arm64"
+                elif [ "${JOB_ARCH}" == "armhf" ]; then
+                    PLATFORM="linux/arm/v6"
+                elif [ "${JOB_ARCH}" == "armv7" ]; then
+                    PLATFORM="linux/arm/v7"
+                elif [ "${JOB_ARCH}" == "ppc64le" ]; then
+                    PLATFORM="linux/ppc64le"
+                elif [ "${JOB_ARCH}" == "x86" ]; then
+                    PLATFORM="linux/386"
+                elif [ "${JOB_ARCH}" == "x86_64" ]; then
+                    PLATFORM="linux/amd64"
+                fi
+
+                while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+                do
+                    if [ $JOB_IMAGE_TEST == 1 ]; then
+                        echo "Build Image for $JOB_ARCH -> TEST ($JOB_ALPINE_BRANCH,$JOB_MARIADB_VERSION,$JOB_MARIADB_VERSION_DATE)"
+                    
+                        docker build --platform ${PLATFORM} \
+                            --build-arg DOCKER_ALPINE_VERSION=${JOB_ALPINE_VERSION} \
+                            --build-arg BUILD_DATE=${BUILD_DATE} \
+                            --build-arg ALPINE_ARCHITECTURE=${JOB_ARCH} \
+                            --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
+                            --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
+                            --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
+                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_BRANCH} \
+                            --build-arg MARIADB_VERSION="${JOB_MARIADB_VERSION}" \
+                            --build-arg MARIADB_VERSION_DATE="${JOB_MARIADB_VERSION_DATE}" \
+                            --push \
+                            -t ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_ARCH} \
+                            -t ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_MARIADB_VERSION}-${JOB_ARCH} \
+                            -f ./Dockerfile .
+                    fi
+                done < "./.mariadb_versions"
+            done < "./.arch"
+        - |
+            while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+            do
+                if [ $JOB_IMAGE_TEST == 1 ]; then
+                    echo "Push Manifest Test -> ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test"
+
+                    docker manifest create ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-aarch64 \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-armhf \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-armv7 \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-ppc64le \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-x86 \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-x86_64
+
+                    docker manifest push ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test
+
+                    echo "Push Manifest Test -> ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_MARIADB_VERSION}"
+
+                    docker manifest create ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_MARIADB_VERSION} \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_MARIADB_VERSION}-aarch64 \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_MARIADB_VERSION}-armhf \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_MARIADB_VERSION}-armv7 \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_MARIADB_VERSION}-ppc64le \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_MARIADB_VERSION}-x86 \
+                        --amend ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_MARIADB_VERSION}-x86_64
+
+                    docker manifest push ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test-${JOB_MARIADB_VERSION}
+                fi
+            done < "./.mariadb_versions"
+
+container_test:
+    stage: test
+    image: docker:23.0.4
+    allow_failure: true
+    needs: ["build"]
+    only:
+        - master
+    tags:
+        - dind64
+    script:
+        - apk add --no-cache curl
+        - |
+          curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64
+          chmod +x container-structure-test-linux-amd64
+          mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+        - |
+          touch junit-test-result.xml
+
+          while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+          do
+                if [ $JOB_IMAGE_TEST == 1 ]; then
+                    docker pull $DOCKER_IMAGE_TEST-${JOB_MARIADB_VERSION}
+
+                    if [[ -f "test.$JOB_MARIADB_VERSION.yaml" ]]; then
+                        container-structure-test -c test.$JOB_MARIADB_VERSION.yaml --image $DOCKER_IMAGE_TEST-${JOB_MARIADB_VERSION} --test-report junit-test-result.${JOB_MARIADB_VERSION}.xml --output junit test
+                        cat junit-test-result.${JOB_MARIADB_VERSION}.xml >> junit-test-result.xml
+                    fi
+                fi
+          done < "./.mariadb_versions"
+    artifacts:         
+        when: always
+        paths:
+            - $CI_PROJECT_DIR/junit-test-result.xml
+        reports:
+            junit:
+                - $CI_PROJECT_DIR/junit-test-result.xml
+
+container_scanning:
+    stage: scanning
+    rules:
+        - if: '$CI_COMMIT_REF_NAME == "master"'
+          when: always
+        - when: never
+    needs: ["container_test"]
+    before_script: []
+    tags:
+        - dind64
+    variables:
+        CS_IMAGE: $DOCKER_IMAGE_TEST
+
+build_current:
     stage: build
+    image: docker:23.0.4
     only:
         - master
-    variables:
-        RELEASE: "TEST"
+    needs: ["build","container_test"]
+    tags:
+        - dind64
     script:
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
+        - BUILD_DATE=$(date +"%Y-%m-%d")
+        - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+        - |
+            while IFS=" " read -r JOB_ARCH
+            do
+                PLATFORM="linux/amd64"
+                if [ "${JOB_ARCH}" == "aarch64" ]; then
+                    PLATFORM="linux/arm64"
+                elif [ "${JOB_ARCH}" == "armhf" ]; then
+                    PLATFORM="linux/arm/v6"
+                elif [ "${JOB_ARCH}" == "armv7" ]; then
+                    PLATFORM="linux/arm/v7"
+                elif [ "${JOB_ARCH}" == "ppc64le" ]; then
+                    PLATFORM="linux/ppc64le"
+                elif [ "${JOB_ARCH}" == "x86" ]; then
+                    PLATFORM="linux/386"
+                elif [ "${JOB_ARCH}" == "x86_64" ]; then
+                    PLATFORM="linux/amd64"
+                fi
 
-build-current:
+                while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+                do
+                    echo "Build Image for $JOB_ARCH -> CURRENT ($JOB_ALPINE_BRANCH,$JOB_MARIADB_VERSION,$JOB_MARIADB_VERSION_DATE)"
+
+                    if [ $JOB_IMAGE_CURRENT == 1 ]; then
+                        docker build --platform ${PLATFORM} \
+                            --build-arg DOCKER_ALPINE_VERSION=${JOB_ALPINE_VERSION} \
+                            --build-arg BUILD_DATE=${BUILD_DATE} \
+                            --build-arg ALPINE_ARCHITECTURE=${JOB_ARCH} \
+                            --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
+                            --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
+                            --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
+                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_BRANCH} \
+                            --build-arg MARIADB_VERSION="${JOB_MARIADB_VERSION}" \
+                            --build-arg MARIADB_VERSION_DATE="${JOB_MARIADB_VERSION_DATE}" \
+                            --push \
+                            -t ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ARCH} \
+                            -t ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ALPINE_VERSION}-${JOB_ARCH} \
+                            -f ./Dockerfile .
+                    fi
+                done < "./.mariadb_versions"
+            done < "./.arch"
+        - |
+            while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+            do
+                if [ $JOB_IMAGE_CURRENT == 1 ]; then
+                    echo "Push Manifest Current -> ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}"
+                    docker manifest create ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION} \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-aarch64 \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-armhf \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-armv7 \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-ppc64le \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-x86 \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-x86_64
+                    docker manifest push ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}
+
+                    echo "Push Manifest Current -> ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ALPINE_VERSION}"
+                    docker manifest create ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ALPINE_VERSION} \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ALPINE_VERSION}-aarch64 \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ALPINE_VERSION}-armhf \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ALPINE_VERSION}-armv7 \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ALPINE_VERSION}-ppc64le \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ALPINE_VERSION}-x86 \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ALPINE_VERSION}-x86_64
+                    docker manifest push ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}-${JOB_ALPINE_VERSION}
+                fi
+            done < "./.mariadb_versions"
+
+build_latest:
     stage: build
+    image: docker:23.0.4
     only:
         - master
-    variables:
-        RELEASE: "CURRENT"
+    needs: ["build","container_test"]
+    tags:
+        - dind64
     script:
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
+        - BUILD_DATE=$(date +"%Y-%m-%d")
+        - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+        - |
+            while IFS=" " read -r JOB_ARCH
+            do
+                PLATFORM="linux/amd64"
+                if [ "${JOB_ARCH}" == "aarch64" ]; then
+                    PLATFORM="linux/arm64"
+                elif [ "${JOB_ARCH}" == "armhf" ]; then
+                    PLATFORM="linux/arm/v6"
+                elif [ "${JOB_ARCH}" == "armv7" ]; then
+                    PLATFORM="linux/arm/v7"
+                elif [ "${JOB_ARCH}" == "ppc64le" ]; then
+                    PLATFORM="linux/ppc64le"
+                elif [ "${JOB_ARCH}" == "x86" ]; then
+                    PLATFORM="linux/386"
+                elif [ "${JOB_ARCH}" == "x86_64" ]; then
+                    PLATFORM="linux/amd64"
+                fi
 
-build-latest:
-    stage: build
-    only:
-        - master
-    variables:
-        RELEASE: "LATEST"
-    script:
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-image.sh -di=$JOB_DOCKER_IMAGE -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
+                while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+                do
+                    echo "Build Image for $JOB_ARCH -> LATEST ($JOB_ALPINE_BRANCH,$JOB_MARIADB_VERSION,$JOB_MARIADB_VERSION_DATE)"
 
-push-test:
-    stage: push
-    only:
-        - master
-    variables:
-        RELEASE: "TEST"
-    needs:
-        - build-test
-    script:
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-manifest.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -av=$JOB_ALPINE_VERSION -r=$RELEASE
+                    if [ $JOB_IMAGE_LATEST == 1 ]; then
+                        docker build --platform ${PLATFORM} \
+                            --build-arg DOCKER_ALPINE_VERSION=${JOB_ALPINE_VERSION} \
+                            --build-arg BUILD_DATE=${BUILD_DATE} \
+                            --build-arg ALPINE_ARCHITECTURE=${JOB_ARCH} \
+                            --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
+                            --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
+                            --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
+                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_BRANCH} \
+                            --build-arg MARIADB_VERSION="${JOB_MARIADB_VERSION}" \
+                            --build-arg MARIADB_VERSION_DATE="${JOB_MARIADB_VERSION_DATE}" \
+                            --push \
+                            -t ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest-${JOB_ARCH} \
+                            -f ./Dockerfile .
+                    fi
+                done < "./.mariadb_versions"
 
-push-current:
-    stage: push
-    only:
-        - master
-    needs:
-        - build-current
-    variables:
-        RELEASE: "CURRENT"
-    script:
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-manifest.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -av=$JOB_ALPINE_VERSION -r=$RELEASE
-
-push-latest:
-    stage: push
-    only:
-        - master
-    needs:
-        - build-latest
-    variables:
-        RELEASE: "LATEST"
-    script:
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=aarch64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armhf -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=armv7 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=ppc64le -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./push-image.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -aa=x86_64 -av=$JOB_ALPINE_VERSION -ad="$JOB_ALPINE_VERSION_DATE" -ar=$JOB_ALPINE_RELEASE -mv=$JOB_MARIADB_VERSION -md=$JOB_MARIADB_VERSION_DATE -r=$RELEASE
-        - bash ./build-manifest.sh -di=$JOB_DOCKER_IMAGE -du=$DOCKER_HUB_USERNAME -dp=$DOCKER_HUB_PASSWORD -av=$JOB_ALPINE_VERSION -r=$RELEASE
+                echo "Build Image for $JOB_ARCH -> LATEST"
+            done < "./.arch"
+        - |
+            while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+            do
+                if [ $JOB_IMAGE_LATEST == 1 ]; then
+                    echo "Push Manifest Latest -> ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest"
+                    docker manifest create ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest-aarch64 \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest-armhf \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest-armv7 \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest-ppc64le \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest-x86 \
+                        --amend ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest-x86_64
+                    docker manifest push ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest
+                fi
+            done < "./.mariadb_versions"
 
 readme:
     stage: readme
+    image: docker:23.0.4
+    allow_failure: true
+    only:
+        - master
+    needs: ["build_latest"]
     variables:
-        GITLAB_SSH_KEY: "$GITLAB_CI_SSH_KEY"
-        DOCKERHUB_USERNAME: "$DOCKER_HUB_USER"
-        DOCKERHUB_PASSWORD: "$DOCKER_HUB_PASSWORD"
         DOCKERHUB_REPO_PREFIX: "maurosoft1973"
         DOCKERHUB_REPO_NAME: "alpine-mariadb"
         DOCKERHUB_SHORT_DESCRIPTION: "MariaDB Docker Image with Multilanguage e Timezone support running on Alpine Linux"
+    tags:
+        - dind64
+    script:
+        - |
+          if [ $LATEST == 0 ]; then
+              exit 0
+          fi
+        - export LAST_UPDATE=$(date +"%d.%m.%Y %H:%M:%S")
+        - |
+          git config --global user.email "mauro.cardillo@gmail.com"
+          git config --global user.name "Mauro Cardillo"
+          git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git /tmp/repository
+        - cd /tmp/repository
+        - echo "Generate README for Alpine Version ${ALPINE_VERSION} and MariaDB Version ${MARIDB_VERSION}"
+        - |
+          sed "s/\%ALPINE_RELEASE\%/${JOB_ALPINE_RELEASE}/g" README.tpl > README_COMPILE.md1
+          sed "s/\%ALPINE_VERSION\%/${JOB_ALPINE_VERSION}/g" README_COMPILE.md1 > README_COMPILE.md2
+          sed "s/\%ALPINE_VERSION_DATE\%/${JOB_ALPINE_VERSION_DATE}/g" README_COMPILE.md2 > README_COMPILE.md3
+          sed "s/\%MARIADB_VERSION\%/${MARIADB_VERSION}/g" README_COMPILE.md3 > README_COMPILE.md4
+          sed "s/\%MARIADB_VERSION_DATE\%/${MARIADB_VERSION_DATE}/g" README_COMPILE.md4 > README_COMPILE.md5
+          sed "s/\%LAST_UPDATE\%/${LAST_UPDATE}/g" README_COMPILE.md5 > README.md
+          rm -rf README_COMPILE.*
+        - |
+          git add .
+          git commit -m "Update README for Alpine Version ${ALPINE_VERSION} and MariaDB Version ${MARIDB_VERSION}"
+          git push --push-option="ci.skip" https://gitlab-ci-token:${GITLAB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git HEAD:$CI_COMMIT_BRANCH
+        - |
+          FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
+          docker pull maurosoft1973/alpine-readme-to-dockerhub
+          docker run --rm -e DOCKERHUB_USERNAME="$DOCKER_HUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKER_HUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="$DOCKERHUB_SHORT_DESCRIPTION" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
+
+clean:
+    stage: clean
+    needs: ["build","build_current","build_latest"]
+    allow_failure: true
+    tags:
+        - dind64
     only:
         - master
-    needs:
-        - push-latest
     script:
-        - apk add --no-cache git openssh-client ca-certificates
-        - git config --global user.email "mauro.cardillo@gmail.com"
-        - git config --global user.name "Mauro Cardillo"
-        - /bin/bash
-        - mkdir -p ~/.ssh &&  chmod 700 ~/.ssh
-        - echo -e "$GITLAB_SSH_KEY" > ~/.ssh/gitlab_ci_ed25519
-        - chmod 600 ~/.ssh/gitlab_ci_ed25519
-        - echo -e "Host gitlab.com\nHostName gitlab.com\nIdentityFile ~/.ssh/gitlab_ci_ed25519" > ~/.ssh/config
-        - echo -e "Add host gitlab.com to known_hosts"
-        - ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
-        - echo -e "Setting permission for ~/.ssh/known_hosts (chmod 644)"
-        - chmod 644 ~/.ssh/known_hosts
-        - git clone git@gitlab.com:maurosoft1973-docker/$DOCKERHUB_REPO_NAME.git /tmp/$DOCKERHUB_REPO_NAME
-        - cd /tmp/$DOCKERHUB_REPO_NAME
-        - LAST_UPDATE=$(date +"%d.%m.%Y %H:%M:%S")
-        - echo "Generate README for Version ${ALPINE_VERSION}"
-        - sed "s/\%ALPINE_RELEASE\%/${ALPINE_RELEASE}/g" README.tpl > README_COMPILE.md1
-        - sed "s/\%ALPINE_VERSION\%/${ALPINE_VERSION}/g" README_COMPILE.md1 > README_COMPILE.md2
-        - sed "s/\%ALPINE_VERSION_DATE\%/${ALPINE_VERSION_DATE}/g" README_COMPILE.md2 > README_COMPILE.md3
-        - sed "s/\%MARIADB_VERSION\%/${MARIADB_VERSION}/g" README_COMPILE.md3 > README_COMPILE.md4
-        - sed "s/\%MARIADB_VERSION_DATE\%/${MARIADB_VERSION_DATE}/g" README_COMPILE.md4 > README_COMPILE.md5
-        - sed "s/\%LAST_UPDATE\%/${LAST_UPDATE}/g" README_COMPILE.md5 > README.md
-        - rm -rf README_COMPILE.*
-        - git add .
-        - git commit -m "Update README"
-        - git push -o ci.skip
-        - FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
-        - docker pull maurosoft1973/alpine-readme-to-dockerhub
-        - docker run --rm -e DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKERHUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="$DOCKERHUB_SHORT_DESCRIPTION" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
+        - |
+          docker images ${DOCKER_HUB_URL}/${DOCKER_HUB_PREFIX}/${DOCKER_IMAGE} -q | xargs --no-run-if-empty docker rmi -f
+          docker volume ls -qf dangling=true | xargs --no-run-if-empty docker volume rm
