@@ -9,7 +9,7 @@ variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_CLI_EXPERIMENTAL: enabled
     DOCKER_DRIVER: overlay2
-    DOCKER_IMAGE_TEST: registry.gitlab.com/maurosoft1973-docker/alpine-mariadb
+    DOCKER_IMAGE_TEST: registry.gitlab.com/maurosoft1973-docker/alpine-mariadb:test
 
 services:
     - name: docker:23.0.4-dind
