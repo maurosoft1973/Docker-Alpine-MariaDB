@@ -4,13 +4,13 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 [![Docker Stars](https://img.shields.io/docker/stars/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 
-[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.18.0-green.svg?style=for-the-badge)](https://alpinelinux.org/)
+[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.19.0-green.svg?style=for-the-badge)](https://alpinelinux.org/)
 [![MariaDB Version](https://img.shields.io/docker/v/maurosoft1973/alpine-mariadb?sort=semver&style=for-the-badge)](https://mariadb.org/)
 
-This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.11.3-r0](https://mariadb.org/) (MySQL Compatible) database server.
+This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.11.5-r3](https://mariadb.org/) (MySQL Compatible) database server.
 
-##### Alpine Version 3.18.0 (Released Mar 29 2023)
-##### MariaDB Version 10.11.3-r0 (Released 2023-05-12 21:55:20)
+##### Alpine Version 3.19.0 (Released Dec 07 2023)
+##### MariaDB Version 10.11.5-r3 (Released 2023-09-27 13:02:28)
 
 ----
 
@@ -57,19 +57,20 @@ MariaDB is developed as open source software and as a relational database it pro
 * ```:test-ppc64le```   test 64 bit PowerPC
 * ```:test-x86```       test 32 bit Intel/AMD
 * ```:test-x86_64```    test 64 bit Intel/AMD
-* ```:3.18.0-10.11.3-r0``` 3.18.0-10.11.3-r0 branch based (Automatic Architecture Selection)
-* ```:3.18.0-10.11.3-r0-aarch64```   3.18.0 64 bit ARM
-* ```:3.18.0-10.11.3-r0-armhf```     3.18.0 32 bit ARM v6
-* ```:3.18.0-10.11.3-r0-armv7```     3.18.0 32 bit ARM v7
-* ```:3.18.0-10.11.3-r0-ppc64le```   3.18.0 64 bit PowerPC
-* ```:3.18.0-10.11.3-r0-x86```       3.18.0 32 bit Intel/AMD
-* ```:3.18.0-10.11.3-r0-x86_64```    3.18.0 64 bit Intel/AMD
+* ```:3.19.0-10.11.5-r3``` 3.19.0-10.11.5-r3 branch based (Automatic Architecture Selection)
+* ```:3.19.0-10.11.5-r3-aarch64```   3.19.0 64 bit ARM
+* ```:3.19.0-10.11.5-r3-armhf```     3.19.0 32 bit ARM v6
+* ```:3.19.0-10.11.5-r3-armv7```     3.19.0 32 bit ARM v7
+* ```:3.19.0-10.11.5-r3-ppc64le```   3.19.0 64 bit PowerPC
+* ```:3.19.0-10.11.5-r3-x86```       3.19.0 32 bit Intel/AMD
+* ```:3.19.0-10.11.5-r3-x86_64```    3.19.0 64 bit Intel/AMD
 
 ## Layers & Sizes
 
 | Version                                                                               | Size                                                                                                                 |
 |---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
 | ![Version](https://img.shields.io/badge/version-amd64-blue.svg?style=for-the-badge)   | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/latest?style=for-the-badge)  |
+| ![Version](https://img.shields.io/badge/version-aarch64-blue.svg?style=for-the-badge) | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/aarch64?style=for-the-badge)   |
 | ![Version](https://img.shields.io/badge/version-armv6-blue.svg?style=for-the-badge)   | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/armhf?style=for-the-badge)   |
 | ![Version](https://img.shields.io/badge/version-armv7-blue.svg?style=for-the-badge)   | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/armv7?style=for-the-badge)   |
 | ![Version](https://img.shields.io/badge/version-ppc64le-blue.svg?style=for-the-badge) | ![MicroBadger Size (tag)](https://img.shields.io/docker/image-size/maurosoft1973/alpine-mariadb/ppc64le?style=for-the-badge) |
@@ -86,16 +87,18 @@ MariaDB is developed as open source software and as a relational database it pro
 ### Main MariaDB parameters:
 * `LC_ALL`: default locale (en_GB.UTF-8)
 * `TIMEZONE`: default timezone (Europe/Brussels)
-* `MYSQL_DATA_USER`: specify the mysql owner data directory (default mysql)
-* `MYSQL_DATA_USER_UID`: specify the uid for mysql owner data directory (default 100)
-* `MYSQL_DATA_GROUP`: specify the mysql group data directory (default mysql)
-* `MYSQL_DATA_GROUP_UID`: specify the gid for mysql group data directory (default 101)
-* `MYSQL_DATABASE`: specify the name of the database
-* `MYSQL_CHARSET`: default charset (utf8) for Mariadb
-* `MYSQL_COLLATION`: default collation (utf8_general_ci) for Mariadb
-* `MYSQL_USER`: specify the user for the database
-* `MYSQL_PASSWORD`: specify the user password for the database
-* `MYSQL_ROOT_PASSWORD`: specify the root password for Mariadb
+* `MYSQL_DATA_USER`: specify the mysql owner data directory (default = mysql)
+* `MYSQL_DATA_USER_UID`: specify the uid for mysql owner data directory (default = 100)
+* `MYSQL_DATA_GROUP`: specify the mysql group data directory (default = mysql)
+* `MYSQL_DATA_GROUP_UID`: specify the gid for mysql group data directory (default = 101)
+* `MYSQL_DATABASE`: specify the name of the database (default = demo)
+* `MYSQL_CHARSET`: specify charset of MYSQL_DATABASE (default = utf8)
+* `MYSQL_COLLATION`: specify collation of MYSQL_DATABASE (default = utf8_general_ci) for Mariadb
+* `MYSQL_USER`: specify the user for the MYSQL_DATABASE (default = demo)
+* `MYSQL_PASSWORD`: specify the user password for access MYSQL_DATABASE (if empty, is autogenerate)
+* `MYSQL_PASSWORD_LENGTH`: specify the length user password for MYSQL_DATABASE (use if MYSQL_PASSWORD password is empty)
+* `MYSQL_ROOT_PASSWORD`: specify the root password for Mariadb (if empty, is autogenerate)
+* `MYSQL_ROOT_PASSWORD_LENGTH`: specify the length root password for Mariadb (use if MYSQL_ROOT_PASSWORD password is empty)
 
 #### List of locale Sets
 
@@ -176,31 +179,32 @@ When setting charset, also make sure to choose a collation otherwise it will be 
 
 > https://mariadb.org/
 
-## Creating an instance
+## Example of use
 
-```bash
-docker run -it --name mysql -p 3306:3306 -v /var/lib/mysql:/var/lib/mysql -e MYSQL_DATABASE=dbtest -e MYSQL_USER=user -e MYSQL_PASSWORD=pwd -e MYSQL_ROOT_PASSWORD=root maurosoft1973/alpine-mariadb
+### 1. Create a container with default value
+
+```sh
+docker run --rm --name mysql -p 3306:3306 -v /var/lib/mysql:/var/lib/mysql maurosoft1973/alpine-mariadb
 ```
 
-It will create a new db, and set mysql root password (default is RaNd0MpA$$W0Rd generated by pwgen) unless the data already exists.
-
-### Configuration without a cnf file
-Many configuration options can be passed as flags to mysqld. This will give you the flexibility to customize the container without needing a cnf file. For example, if you want to change the default encoding and collation for all tables to use UTF-8 (utf8mb4) just run the following:
+### 2. Create a container with charset utf8mb4, collation utf8mb4_unicode_ci and default value
 
 ```bash
-docker run --name some-mariadb -e MYSQL_ROOT_PASSWORD=root -d maurosoft1973/alpine-mariadb --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+docker run --rm --name mysql -p 3306:3306 -v /var/lib/mysql:/var/lib/mysql -e MYSQL_CHARSET=utf8mb4 -e MYSQL_COLLATION=utf8mb4_unicode_ci maurosoft1973/alpine-mariadb
 ```
 
-command:
-  - --character-set-server=utf8
-  - --collation-server=utf8_bin
-  - --explicit-defaults-for-timestamp=1
+### 3. Create a container with init script for populate database from dump
 
-### Initializing a fresh instance
-When a container is started for the first time, a new database with the specified name will be created and initialized with the provided configuration variables. Furthermore, it will execute files with extensions .sh, .sql and .sql.gz that are found in /docker-entrypoint-initdb.d. Files will be executed in alphabetical order. You can easily populate your mariadb services by mounting a SQL dump into that directory and provide custom images with contributed data. SQL files will be imported by default to the database specified by the MYSQL_DATABASE variable.
+When a container is started for the first time, a new database with the specified name will be created and initialized with the provided 
+configuration variables. Furthermore, it will execute files with extensions .sh, .sql and .sql.gz that are found in /docker-entrypoint-initdb.d. 
+Files will be executed in alphabetical order. You can easily populate your mariadb services by mounting a SQL dump into that directory and provide 
+custom images with contributed data. SQL files will be imported by default to the database specified by the MYSQL_DATABASE variable.
 
+```sh
+docker run --rm --name mysql -p 3306:3306 -v /var/lib/mysql:/var/lib/mysql -v /myscript/initdb:/docker-entrypoint-initdb.d -v /myscript/pre-init:/scripts/pre-init.d -e MYSQL_DATABASE=dbtest -e MYSQL_USER=user -e MYSQL_PASSWORD=pwd -e MYSQL_ROOT_PASSWORD=root maurosoft1973/alpine-mariadb
+```
 
-## Docker Compose example:
+## 4. Docker compose example
 
 ##### (Please pass your own credentials or let them be generated automatically, don't use these ones for production!!)
 
@@ -220,4 +224,4 @@ mysql:
 ```
 
 ***
-###### Last Update 21.05.2023 18:53:30
+###### Last Update 31.12.2023 18:24:00
