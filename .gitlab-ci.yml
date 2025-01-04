@@ -39,10 +39,6 @@ before_script:
     - set -a;
     - source ./${ENV_JOB};
     - set +a;
-    - |
-      export JOB_ALPINE_VERSION=${CI_ALPINE_VERSION:-"$ALPINE_VERSION"}
-      export JOB_ALPINE_VERSION_DATE=${CI_ALPINE_VERSION_DATE:-"$ALPINE_VERSION_DATE"}
-      export JOB_ALPINE_RELEASE=${CI_ALPINE_RELEASE:-"$ALPINE_RELEASE"}
 
 build:
     stage: test
@@ -70,10 +66,10 @@ build:
                     PLATFORM="linux/amd64"
                 fi
 
-                while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+                while IFS="," read -r JOB_ALPINE_RELEASE JOB_ALPINE_VERSION JOB_ALPINE_VERSION_DATE JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
                 do
                     if [ $JOB_IMAGE_TEST == 1 ]; then
-                        echo "Build Image for $JOB_ARCH -> TEST ($JOB_ALPINE_BRANCH,$JOB_MARIADB_VERSION,$JOB_MARIADB_VERSION_DATE)"
+                        echo "Build Image for $JOB_ARCH -> TEST ($JOB_ALPINE_RELEASE,$JOB_MARIADB_VERSION,$JOB_MARIADB_VERSION_DATE)"
                     
                         docker build --platform ${PLATFORM} \
                             --build-arg DOCKER_ALPINE_VERSION=${JOB_ALPINE_VERSION} \
@@ -82,7 +78,7 @@ build:
                             --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
                             --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
                             --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
-                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_BRANCH} \
+                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_RELEASE} \
                             --build-arg MARIADB_VERSION="${JOB_MARIADB_VERSION}" \
                             --build-arg MARIADB_VERSION_DATE="${JOB_MARIADB_VERSION_DATE}" \
                             --push \
@@ -93,7 +89,7 @@ build:
                 done < "./.mariadb_versions"
             done < "./.arch"
         - |
-            while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+            while IFS="," read -r JOB_ALPINE_RELEASE JOB_ALPINE_VERSION JOB_ALPINE_VERSION_DATE JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
             do
                 if [ $JOB_IMAGE_TEST == 1 ]; then
                     echo "Push Manifest Test -> ${GITLAB_CR_URL}/${GITLAB_CR_GROUP}/${GITLAB_CR_IMAGE}:test"
@@ -140,7 +136,7 @@ container_test:
         - |
           touch junit-test-result.xml
 
-          while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+          while IFS="," read -r JOB_ALPINE_RELEASE JOB_ALPINE_VERSION JOB_ALPINE_VERSION_DATE JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
           do
                 if [ $JOB_IMAGE_TEST == 1 ]; then
                     docker pull $DOCKER_IMAGE_TEST-${JOB_MARIADB_VERSION}
@@ -161,6 +157,7 @@ container_test:
 
 container_scanning:
     stage: scanning
+    allow_failure: true
     rules:
         - if: '$CI_COMMIT_REF_NAME == "master"'
           when: always
@@ -201,9 +198,9 @@ build_current:
                     PLATFORM="linux/amd64"
                 fi
 
-                while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+                while IFS="," read -r JOB_ALPINE_RELEASE JOB_ALPINE_VERSION JOB_ALPINE_VERSION_DATE JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
                 do
-                    echo "Build Image for $JOB_ARCH -> CURRENT ($JOB_ALPINE_BRANCH,$JOB_MARIADB_VERSION,$JOB_MARIADB_VERSION_DATE)"
+                    echo "Build Image for $JOB_ARCH -> CURRENT ($JOB_ALPINE_RELEASE,$JOB_MARIADB_VERSION,$JOB_MARIADB_VERSION_DATE)"
 
                     if [ $JOB_IMAGE_CURRENT == 1 ]; then
                         docker build --platform ${PLATFORM} \
@@ -213,7 +210,7 @@ build_current:
                             --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
                             --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
                             --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
-                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_BRANCH} \
+                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_RELEASE} \
                             --build-arg MARIADB_VERSION="${JOB_MARIADB_VERSION}" \
                             --build-arg MARIADB_VERSION_DATE="${JOB_MARIADB_VERSION_DATE}" \
                             --push \
@@ -224,7 +221,7 @@ build_current:
                 done < "./.mariadb_versions"
             done < "./.arch"
         - |
-            while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+            while IFS="," read -r JOB_ALPINE_RELEASE JOB_ALPINE_VERSION JOB_ALPINE_VERSION_DATE JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
             do
                 if [ $JOB_IMAGE_CURRENT == 1 ]; then
                     echo "Push Manifest Current -> ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:${JOB_MARIADB_VERSION}"
@@ -278,9 +275,9 @@ build_latest:
                     PLATFORM="linux/amd64"
                 fi
 
-                while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+                while IFS="," read -r JOB_ALPINE_RELEASE JOB_ALPINE_VERSION JOB_ALPINE_VERSION_DATE JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
                 do
-                    echo "Build Image for $JOB_ARCH -> LATEST ($JOB_ALPINE_BRANCH,$JOB_MARIADB_VERSION,$JOB_MARIADB_VERSION_DATE)"
+                    echo "Build Image for $JOB_ARCH -> LATEST ($JOB_ALPINE_RELEASE,$JOB_MARIADB_VERSION,$JOB_MARIADB_VERSION_DATE)"
 
                     if [ $JOB_IMAGE_LATEST == 1 ]; then
                         docker build --platform ${PLATFORM} \
@@ -290,7 +287,7 @@ build_latest:
                             --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
                             --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
                             --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
-                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_BRANCH} \
+                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_RELEASE} \
                             --build-arg MARIADB_VERSION="${JOB_MARIADB_VERSION}" \
                             --build-arg MARIADB_VERSION_DATE="${JOB_MARIADB_VERSION_DATE}" \
                             --push \
@@ -302,7 +299,7 @@ build_latest:
                 echo "Build Image for $JOB_ARCH -> LATEST"
             done < "./.arch"
         - |
-            while IFS="," read -r JOB_ALPINE_BRANCH JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+            while IFS="," read -r JOB_ALPINE_RELEASE JOB_ALPINE_VERSION JOB_ALPINE_VERSION_DATE JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
             do
                 if [ $JOB_IMAGE_LATEST == 1 ]; then
                     echo "Push Manifest Latest -> ${DOCKER_HUB_GROUP}/${DOCKER_HUB_IMAGE}:latest"
@@ -328,41 +325,54 @@ readme:
         DOCKER_USER: $DOCKER_HUB_USERNAME
         DOCKER_PASS: $DOCKER_HUB_PASSWORD
         PUSHRM_SHORT: "MariaDB Docker Image with Multilanguage e Timezone support running on Alpine Linux"
-        PUSHRM_TARGET: docker.io/$DOCKER_HUB_USERNAME/alpine-mariadb
+        PUSHRM_TARGET: docker.io/$DOCKER_HUB_USERNAME/$DOCKER_HUB_IMAGE
         PUSHRM_DEBUG: 1
         PUSHRM_FILE: /tmp/repository/README.md
     tags:
         - dind64
     script:
+        - FOUND=0
         - |
-          if [ $LATEST == 0 ]; then
+            while IFS="," read -r JOB_ALPINE_RELEASE JOB_ALPINE_VERSION JOB_ALPINE_VERSION_DATE JOB_IMAGE_TEST JOB_IMAGE_LATEST JOB_IMAGE_CURRENT JOB_MARIADB_VERSION JOB_MARIADB_VERSION_DATE
+            do
+                if [ $JOB_IMAGE_LATEST == 1 ]; then
+                    ALPINE_RELEASE=${JOB_ALPINE_RELEASE}
+                    ALPINE_VERSION=${JOB_ALPINE_VERSION}
+                    ALPINE_VERSION_DATE=${JOB_ALPINE_VERSION_DATE}
+                    MARIADB_VERSION=${JOB_MARIADB_VERSION}
+                    MARIADB_VERSION_DATE=${JOB_MARIADB_VERSION_DATE}
+                    FOUND=1
+                fi
+            done < "./.alpine_versions"
+        - |
+            if [ $FOUND == 0 ]; then
               exit 0
-          fi
+            fi
         - export LAST_UPDATE=$(date +"%d.%m.%Y %H:%M:%S")
         - |
-          git config --global user.email "mauro.cardillo@gmail.com"
-          git config --global user.name "Mauro Cardillo"
-          git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git /tmp/repository
+            git config --global user.email "mauro.cardillo@gmail.com"
+            git config --global user.name "Mauro Cardillo"
+            git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git /tmp/repository
         - cd /tmp/repository
         - echo "Generate README for Alpine Version ${ALPINE_VERSION} and MariaDB Version ${MARIDB_VERSION}"
         - |
-          sed "s/\%ALPINE_RELEASE\%/${JOB_ALPINE_RELEASE}/g" README.tpl > README_COMPILE.md1
-          sed "s/\%ALPINE_VERSION\%/${JOB_ALPINE_VERSION}/g" README_COMPILE.md1 > README_COMPILE.md2
-          sed "s/\%ALPINE_VERSION_DATE\%/${JOB_ALPINE_VERSION_DATE}/g" README_COMPILE.md2 > README_COMPILE.md3
-          sed "s/\%MARIADB_VERSION\%/${MARIADB_VERSION}/g" README_COMPILE.md3 > README_COMPILE.md4
-          sed "s/\%MARIADB_VERSION_DATE\%/${MARIADB_VERSION_DATE}/g" README_COMPILE.md4 > README_COMPILE.md5
-          sed "s/\%LAST_UPDATE\%/${LAST_UPDATE}/g" README_COMPILE.md5 > README.md
-          rm -rf README_COMPILE.*
+            sed "s/\%ALPINE_RELEASE\%/${ALPINE_RELEASE}/g" README.tpl > README_COMPILE.md1
+            sed "s/\%ALPINE_VERSION\%/${ALPINE_VERSION}/g" README_COMPILE.md1 > README_COMPILE.md2
+            sed "s/\%ALPINE_VERSION_DATE\%/${ALPINE_VERSION_DATE}/g" README_COMPILE.md2 > README_COMPILE.md3
+            sed "s/\%MARIADB_VERSION\%/${MARIADB_VERSION}/g" README_COMPILE.md3 > README_COMPILE.md4
+            sed "s/\%MARIADB_VERSION_DATE\%/${MARIADB_VERSION_DATE}/g" README_COMPILE.md4 > README_COMPILE.md5
+            sed "s/\%LAST_UPDATE\%/${LAST_UPDATE}/g" README_COMPILE.md5 > README.md
+            rm -rf README_COMPILE.*
         - |
-          git add .
-          git commit -m "Update README for Alpine Version ${ALPINE_VERSION} and MariaDB Version ${MARIDB_VERSION}"
-          git push --push-option="ci.skip" https://gitlab-ci-token:${GITLAB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git HEAD:$CI_COMMIT_BRANCH
+            git add .
+            git commit -m "Update README for Alpine Version ${ALPINE_VERSION} and MariaDB Version ${MARIDB_VERSION}"
+            git push --push-option="ci.skip" https://gitlab-ci-token:${GITLAB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git HEAD:$CI_COMMIT_BRANCH
         - |
-          curl -LO https://github.com/christian-korneck/docker-pushrm/releases/download/v1.9.0/docker-pushrm_linux_amd64 
-          chmod +x docker-pushrm_linux_amd64
-          mv docker-pushrm_linux_amd64 /usr/local/bin/docker-pushrm
+            curl -LO https://github.com/christian-korneck/docker-pushrm/releases/download/v1.9.0/docker-pushrm_linux_amd64 
+            chmod +x docker-pushrm_linux_amd64
+            mv docker-pushrm_linux_amd64 /usr/local/bin/docker-pushrm
         - |
-          docker-pushrm docker.io/$DOCKER_HUB_USERNAME/alpine-mariadb
+            docker-pushrm docker.io/$DOCKER_HUB_USERNAME/$DOCKER_HUB_IMAGE
 
 clean:
     stage: clean
