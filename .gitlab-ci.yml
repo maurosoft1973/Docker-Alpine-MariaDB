@@ -325,9 +325,12 @@ readme:
         - master
     needs: ["build_latest"]
     variables:
-        DOCKERHUB_REPO_PREFIX: "maurosoft1973"
-        DOCKERHUB_REPO_NAME: "alpine-mariadb"
-        DOCKERHUB_SHORT_DESCRIPTION: "MariaDB Docker Image with Multilanguage e Timezone support running on Alpine Linux"
+        DOCKER_USER: $DOCKER_HUB_USERNAME
+        DOCKER_PASS: $DOCKER_HUB_PASSWORD
+        PUSHRM_SHORT: "MariaDB Docker Image with Multilanguage e Timezone support running on Alpine Linux"
+        PUSHRM_TARGET: docker.io/$DOCKER_HUB_USERNAME/alpine-mariadb
+        PUSHRM_DEBUG: 1
+        PUSHRM_FILE: /tmp/repository/README.md
     tags:
         - dind64
     script:
@@ -355,9 +358,11 @@ readme:
           git commit -m "Update README for Alpine Version ${ALPINE_VERSION} and MariaDB Version ${MARIDB_VERSION}"
           git push --push-option="ci.skip" https://gitlab-ci-token:${GITLAB_TOKEN}@${CI_SERVER_HOST}/$CI_PROJECT_PATH.git HEAD:$CI_COMMIT_BRANCH
         - |
-          FULL_DESCRIPTION=$(if [ -f "$(pwd)/README.md" ]; then cat "$(pwd)/README.md"; else echo ""; fi)
-          docker pull maurosoft1973/alpine-readme-to-dockerhub
-          docker run --rm -e DOCKERHUB_USERNAME="$DOCKER_HUB_USERNAME" -e DOCKERHUB_PASSWORD="$DOCKER_HUB_PASSWORD" -e DOCKERHUB_REPO_PREFIX="$DOCKERHUB_REPO_PREFIX" -e DOCKERHUB_REPO_NAME="$DOCKERHUB_REPO_NAME" -e SHORT_DESCRIPTION="$DOCKERHUB_SHORT_DESCRIPTION" -e FULL_DESCRIPTION="$FULL_DESCRIPTION" maurosoft1973/alpine-readme-to-dockerhub
+          curl -LO https://github.com/christian-korneck/docker-pushrm/releases/download/v1.9.0/docker-pushrm_linux_amd64 
+          chmod +x docker-pushrm_linux_amd64
+          mv docker-pushrm_linux_amd64 /usr/local/bin/docker-pushrm
+        - |
+          docker-pushrm docker.io/$DOCKER_HUB_USERNAME/alpine-mariadb
 
 clean:
     stage: clean
