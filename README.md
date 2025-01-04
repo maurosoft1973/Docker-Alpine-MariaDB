@@ -4,13 +4,13 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 [![Docker Stars](https://img.shields.io/docker/stars/maurosoft1973/alpine-mariadb.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/)
 
-[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.19.0-green.svg?style=for-the-badge)](https://alpinelinux.org/)
+[![Alpine Version](https://img.shields.io/badge/Alpine%20version-v3.21.0-green.svg?style=for-the-badge)](https://alpinelinux.org/)
 [![MariaDB Version](https://img.shields.io/docker/v/maurosoft1973/alpine-mariadb?sort=semver&style=for-the-badge)](https://mariadb.org/)
 
-This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v10.11.5-r3](https://mariadb.org/) (MySQL Compatible) database server.
+This Docker image [(maurosoft1973/alpine-mariadb)](https://hub.docker.com/r/maurosoft1973/alpine-mariadb/) is based on the minimal [Alpine Linux](https://alpinelinux.org/) with [MariaDB v11.4.4-r2](https://mariadb.org/) (MySQL Compatible) database server.
 
-##### Alpine Version 3.19.0 (Released Dec 07 2023)
-##### MariaDB Version 10.11.5-r3 (Released 2023-09-27 13:02:28)
+##### Alpine Version 3.21.0 (Released Dec 05 2024)
+##### MariaDB Version 11.4.4-r2 (Released 2024-12-14 18:20:52)
 
 ----
 
@@ -57,13 +57,13 @@ MariaDB is developed as open source software and as a relational database it pro
 * ```:test-ppc64le```   test 64 bit PowerPC
 * ```:test-x86```       test 32 bit Intel/AMD
 * ```:test-x86_64```    test 64 bit Intel/AMD
-* ```:3.19.0-10.11.5-r3``` 3.19.0-10.11.5-r3 branch based (Automatic Architecture Selection)
-* ```:3.19.0-10.11.5-r3-aarch64```   3.19.0 64 bit ARM
-* ```:3.19.0-10.11.5-r3-armhf```     3.19.0 32 bit ARM v6
-* ```:3.19.0-10.11.5-r3-armv7```     3.19.0 32 bit ARM v7
-* ```:3.19.0-10.11.5-r3-ppc64le```   3.19.0 64 bit PowerPC
-* ```:3.19.0-10.11.5-r3-x86```       3.19.0 32 bit Intel/AMD
-* ```:3.19.0-10.11.5-r3-x86_64```    3.19.0 64 bit Intel/AMD
+* ```:3.21.0-11.4.4-r2``` 3.21.0-11.4.4-r2 branch based (Automatic Architecture Selection)
+* ```:3.21.0-11.4.4-r2-aarch64```   3.21.0 64 bit ARM
+* ```:3.21.0-11.4.4-r2-armhf```     3.21.0 32 bit ARM v6
+* ```:3.21.0-11.4.4-r2-armv7```     3.21.0 32 bit ARM v7
+* ```:3.21.0-11.4.4-r2-ppc64le```   3.21.0 64 bit PowerPC
+* ```:3.21.0-11.4.4-r2-x86```       3.21.0 32 bit Intel/AMD
+* ```:3.21.0-11.4.4-r2-x86_64```    3.21.0 64 bit Intel/AMD
 
 ## Layers & Sizes
 
@@ -224,4 +224,4 @@ mysql:
 ```
 
 ***
-###### Last Update 31.12.2023 18:24:00
+###### Last Update 04.01.2025 14:19:20
