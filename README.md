@@ -99,6 +99,14 @@ MariaDB is developed as open source software and as a relational database it pro
 * `MYSQL_PASSWORD_LENGTH`: specify the length user password for MYSQL_DATABASE (use if MYSQL_PASSWORD password is empty)
 * `MYSQL_ROOT_PASSWORD`: specify the root password for Mariadb (if empty, is autogenerate)
 * `MYSQL_ROOT_PASSWORD_LENGTH`: specify the length root password for Mariadb (use if MYSQL_ROOT_PASSWORD password is empty)
+* `MYSQL_REPLICATION`: if 1, replication is enabled (default 0)
+* `MYSQL_REPLICATION_USER`: specify the user used for replication (default = replic)
+* `MYSQL_REPLICATION_PASSWORD`: specify the user password  (default = replic)
+* `MYSQL_REPLICATION_SERVER_ID`: The server id is a unique number for each MariaDB/MySQL server in your network (default = 1). It must be a unique value for each server in the replication
+* `MYSQL_REPLICATION_LOG_BIN`: enables the binlog required for replication. (default /var/log/mysql/mysql-bin.log)
+* `MYSQL_REPLICATION_BINLOG_FORMAT`: This system variable sets the binary logging format, and can be any one of STATEMENT, ROW, or MIXED (default ROW)
+* `MYSQL_REPLICATION_BINLOG_EXPIRE_LOG_SECONDS`: Sets the binary log expiration period in seconds. After their expiration period ends, binary log files can be automatically removed (default 864000)
+* `MYSQL_REPLICATION_MAX_BINLOG_SIZE`: If a write to the binary log causes the current log file size to exceed the value of this variable, the server rotates the binary logs (closes the current file and opens the next one). (default 500M)
 
 #### List of locale Sets
 
@@ -224,4 +232,4 @@ mysql:
 ```
 
 ***
-###### Last Update 05.01.2025 09:53:52
+###### Last Update 05.01.2025 17:46:51
