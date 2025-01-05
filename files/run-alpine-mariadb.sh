@@ -14,6 +14,14 @@ MYSQL_PASSWORD=${MYSQL_PASSWORD:-""}
 MYSQL_PASSWORD_LENGTH=${MYSQL_PASSWORD_LENGTH:-30}
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-""}
 MYSQL_ROOT_PASSWORD_LENGTH=${MYSQL_ROOT_PASSWORD_LENGTH:-30}
+MYSQL_REPLICATION=${MYSQL_REPLICATION:-0}
+MYSQL_REPLICATION_USER=${MYSQL_REPLICATION_USER:-"replic"}
+MYSQL_REPLICATION_PASSWORD=${MYSQL_REPLICATION_PASSWORD:-"replic"}
+MYSQL_REPLICATION_SERVER_ID=${MYSQL_REPLICATION_SERVER_ID:-1}
+MYSQL_REPLICATION_LOG_BIN=${MYSQL_REPLICATION_LOG_BIN:-"/var/log/mysql/mysql-bin.log"}
+MYSQL_REPLICATION_BINLOG_FORMAT=${MYSQL_REPLICATION_BINLOG_FORMAT:-ROW}
+MYSQL_REPLICATION_BINLOG_EXPIRE_LOG_SECONDS=${MYSQL_REPLICATION_BINLOG_EXPIRE_LOG_SECONDS:-864000}
+MYSQL_REPLICATION_MAX_BINLOG_SIZE=${MYSQL_REPLICATION_MAX_BINLOG_SIZE:-"500M"}
 
 echo "MYSQL_DATA_USER: ${MYSQL_DATA_USER}"
 echo "MYSQL_DATA_USER_UID: ${MYSQL_DATA_USER_UID}"
@@ -41,6 +49,17 @@ fi
 if [ "${MYSQL_DATA_USER}" != "mysql" ]; then
     echo "[mysqld]" >> /etc/my.cnf.d/mariadb-server.cnf
     echo "innodb_use_native_aio=0" >> /etc/my.cnf.d/mariadb-server.cnf
+fi
+
+if [ ${MYSQL_REPLICATION} == 1 ]; then
+    echo "# Replication settings for MariaDB" >> /etc/my.cnf.d/mariadb-server.cnf
+    echo "gtid_strict_mode = ON" >> /etc/my.cnf.d/mariadb-server.cnf
+    echo "gtid_domain_id = 0" >> /etc/my.cnf.d/mariadb-server.cnf
+    echo "server_id = $MYSQL_REPLICATION_SERVER_ID" >> /etc/my.cnf.d/mariadb-server.cnf
+    echo "log_bin = $MYSQL_REPLICATION_LOG_BIN" >> /etc/my.cnf.d/mariadb-server.cnf
+    echo "binlog_expire_logs_seconds = $MYSQL_REPLICATION_BINLOG_EXPIRE_LOG_SECONDS" >> /etc/my.cnf.d/mariadb-server.cnf
+    echo "max_binlog_size = $MYSQL_REPLICATION_MAX_BINLOG_SIZE" >> /etc/my.cnf.d/mariadb-server.cnf
+    echo "binlog_format = $MYSQL_REPLICATION_BINLOG_FORMAT" >> /etc/my.cnf.d/mariadb-server.cnf
 fi
 
 # execute any pre-init scripts
@@ -106,6 +125,13 @@ EOF
             echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
             echo "GRANT ALL PRIVILEGES ON \`$MYSQL_DATABASE\`.* TO \`$MYSQL_USER\`@\`localhost\` IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
             echo "GRANT ALL PRIVILEGES ON \`$MYSQL_DATABASE\`.* TO \`$MYSQL_USER\`@\`%\` IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
+            echo "FLUSH PRIVILEGES ;" >> $tfile
+        fi
+
+        if [ ${MYSQL_REPLICATION} == 1 ]; then
+            echo "[i] Creating user: $MYSQL_REPLICATION_USER with password $MYSQL_REPLICATION_PASSWORD"  
+            echo "CREATE USER \`$MYSQL_REPLICATION_USER\`@\`%\` identified with mysql_native_password by '$MYSQL_REPLICATION_PASSWORD';" >> $tfile
+            echo "GRANT replication slave, replication client, reload, select on *.* to \`$MYSQL_REPLICATION_USER\`@\`%\`;" >> $tfile
             echo "FLUSH PRIVILEGES ;" >> $tfile
         fi
     fi
