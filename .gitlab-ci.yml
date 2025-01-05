@@ -343,7 +343,7 @@ readme:
                     MARIADB_VERSION_DATE=${JOB_MARIADB_VERSION_DATE}
                     FOUND=1
                 fi
-            done < "./.alpine_versions"
+            done < "./.mariadb_versions"
         - |
             if [ $FOUND == 0 ]; then
               exit 0
