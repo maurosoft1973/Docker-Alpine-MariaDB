@@ -18,7 +18,7 @@ MYSQL_REPLICATION=${MYSQL_REPLICATION:-0}
 MYSQL_REPLICATION_USER=${MYSQL_REPLICATION_USER:-"replic"}
 MYSQL_REPLICATION_PASSWORD=${MYSQL_REPLICATION_PASSWORD:-"replic"}
 MYSQL_REPLICATION_SERVER_ID=${MYSQL_REPLICATION_SERVER_ID:-1}
-MYSQL_REPLICATION_LOG_BIN=${MYSQL_REPLICATION_LOG_BIN:-"/var/log/mysql/mysql-bin.log"}
+MYSQL_REPLICATION_LOG_BIN=${MYSQL_REPLICATION_LOG_BIN:-"ON"}
 MYSQL_REPLICATION_BINLOG_FORMAT=${MYSQL_REPLICATION_BINLOG_FORMAT:-"ROW"}
 MYSQL_REPLICATION_BINLOG_EXPIRE_LOG_SECONDS=${MYSQL_REPLICATION_BINLOG_EXPIRE_LOG_SECONDS:-864000}
 MYSQL_REPLICATION_MAX_BINLOG_SIZE=${MYSQL_REPLICATION_MAX_BINLOG_SIZE:-"500M"}
@@ -52,14 +52,16 @@ if [ "${MYSQL_DATA_USER}" != "mysql" ]; then
 fi
 
 if [ ${MYSQL_REPLICATION} == 1 ]; then
-    echo "# Replication settings for MariaDB" >> /etc/my.cnf.d/mariadb-server.cnf
-    echo "gtid_strict_mode = ON" >> /etc/my.cnf.d/mariadb-server.cnf
-    echo "gtid_domain_id = 0" >> /etc/my.cnf.d/mariadb-server.cnf
-    echo "server_id = $MYSQL_REPLICATION_SERVER_ID" >> /etc/my.cnf.d/mariadb-server.cnf
-    echo "log_bin = $MYSQL_REPLICATION_LOG_BIN" >> /etc/my.cnf.d/mariadb-server.cnf
-    echo "binlog_expire_logs_seconds = $MYSQL_REPLICATION_BINLOG_EXPIRE_LOG_SECONDS" >> /etc/my.cnf.d/mariadb-server.cnf
-    echo "max_binlog_size = $MYSQL_REPLICATION_MAX_BINLOG_SIZE" >> /etc/my.cnf.d/mariadb-server.cnf
-    echo "binlog_format = $MYSQL_REPLICATION_BINLOG_FORMAT" >> /etc/my.cnf.d/mariadb-server.cnf
+    touch /etc/my.cnf.d/mariadb-server-replication.cnf
+    echo "[mariadb]" >> /etc/my.cnf.d/mariadb-server-replication.cnf
+    echo "# Replication settings for MariaDB" >> /etc/my.cnf.d/mariadb-server-replication.cnf
+    echo "gtid_strict_mode = ON" >> /etc/my.cnf.d/mariadb-server-replication.cnf
+    echo "gtid_domain_id = 0" >> /etc/my.cnf.d/mariadb-server-replication.cnf
+    echo "server_id = $MYSQL_REPLICATION_SERVER_ID" >> /etc/my.cnf.d/mariadb-server-replication.cnf
+    echo "log_bin = $MYSQL_REPLICATION_LOG_BIN" >> /etc/my.cnf.d/mariadb-server-replication.cnf
+    echo "binlog_expire_logs_seconds = $MYSQL_REPLICATION_BINLOG_EXPIRE_LOG_SECONDS" >> /etc/my.cnf.d/mariadb-server-replication.cnf
+    echo "max_binlog_size = $MYSQL_REPLICATION_MAX_BINLOG_SIZE" >> /etc/my.cnf.d/mariadb-server-replication.cnf
+    echo "binlog_format = '$MYSQL_REPLICATION_BINLOG_FORMAT'" >> /etc/my.cnf.d/mariadb-server-replication.cnf
 fi
 
 # execute any pre-init scripts
