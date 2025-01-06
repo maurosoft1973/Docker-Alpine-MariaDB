@@ -78,7 +78,6 @@ build:
                             --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
                             --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
                             --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
-                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_RELEASE} \
                             --build-arg MARIADB_VERSION="${JOB_MARIADB_VERSION}" \
                             --build-arg MARIADB_VERSION_DATE="${JOB_MARIADB_VERSION_DATE}" \
                             --push \
@@ -210,7 +209,6 @@ build_current:
                             --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
                             --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
                             --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
-                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_RELEASE} \
                             --build-arg MARIADB_VERSION="${JOB_MARIADB_VERSION}" \
                             --build-arg MARIADB_VERSION_DATE="${JOB_MARIADB_VERSION_DATE}" \
                             --push \
@@ -287,7 +285,6 @@ build_latest:
                             --build-arg ALPINE_RELEASE=${JOB_ALPINE_RELEASE} \
                             --build-arg ALPINE_VERSION=${JOB_ALPINE_VERSION} \
                             --build-arg ALPINE_VERSION_DATE="${JOB_ALPINE_VERSION_DATE}" \
-                            --build-arg ALPINE_BRANCH=${JOB_ALPINE_RELEASE} \
                             --build-arg MARIADB_VERSION="${JOB_MARIADB_VERSION}" \
                             --build-arg MARIADB_VERSION_DATE="${JOB_MARIADB_VERSION_DATE}" \
                             --push \

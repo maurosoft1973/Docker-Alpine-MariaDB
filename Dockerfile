@@ -43,6 +43,7 @@ RUN chmod -R 755 /scripts
 EXPOSE 3306
 
 VOLUME ["/var/lib/mysql"]
+VOLUME ["/var/log/mysql"]
 VOLUME ["/etc/my.cnf.d"]
 
 ENTRYPOINT ["/scripts/run-alpine-mariadb.sh"]

@@ -19,7 +19,7 @@ MYSQL_REPLICATION_USER=${MYSQL_REPLICATION_USER:-"replic"}
 MYSQL_REPLICATION_PASSWORD=${MYSQL_REPLICATION_PASSWORD:-"replic"}
 MYSQL_REPLICATION_SERVER_ID=${MYSQL_REPLICATION_SERVER_ID:-1}
 MYSQL_REPLICATION_LOG_BIN=${MYSQL_REPLICATION_LOG_BIN:-"/var/log/mysql/mysql-bin.log"}
-MYSQL_REPLICATION_BINLOG_FORMAT=${MYSQL_REPLICATION_BINLOG_FORMAT:-ROW}
+MYSQL_REPLICATION_BINLOG_FORMAT=${MYSQL_REPLICATION_BINLOG_FORMAT:-"ROW"}
 MYSQL_REPLICATION_BINLOG_EXPIRE_LOG_SECONDS=${MYSQL_REPLICATION_BINLOG_EXPIRE_LOG_SECONDS:-864000}
 MYSQL_REPLICATION_MAX_BINLOG_SIZE=${MYSQL_REPLICATION_MAX_BINLOG_SIZE:-"500M"}
 
@@ -88,7 +88,7 @@ else
 
     chown -R $MYSQL_DATA_USER:$MYSQL_DATA_GROUP /var/lib/mysql
 
-    mysql_install_db --user=$MYSQL_DATA_USER --ldata=/var/lib/mysql
+    mariadb-install-db --user=$MYSQL_DATA_USER --ldata=/var/lib/mysql
 
     if [ "$MYSQL_ROOT_PASSWORD" == "" ]; then
         MYSQL_ROOT_PASSWORD=`pwgen -s $MYSQL_ROOT_PASSWORD_LENGTH 1`
@@ -130,20 +130,20 @@ EOF
 
         if [ ${MYSQL_REPLICATION} == 1 ]; then
             echo "[i] Creating user: $MYSQL_REPLICATION_USER with password $MYSQL_REPLICATION_PASSWORD"  
-            echo "CREATE USER \`$MYSQL_REPLICATION_USER\`@\`%\` identified with mysql_native_password by '$MYSQL_REPLICATION_PASSWORD';" >> $tfile
+            echo "CREATE USER \`$MYSQL_REPLICATION_USER\`@\`%\` IDENTIFIED BY '$MYSQL_REPLICATION_PASSWORD';" >> $tfile
             echo "GRANT replication slave, replication client, reload, select on *.* to \`$MYSQL_REPLICATION_USER\`@\`%\`;" >> $tfile
             echo "FLUSH PRIVILEGES ;" >> $tfile
         fi
     fi
 
-    /usr/bin/mysqld --user=$MYSQL_DATA_USER --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < $tfile
+    /usr/bin/mariadbd --user=$MYSQL_DATA_USER --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < $tfile
 
     rm -f $tfile
 
     for f in /docker-entrypoint-initdb.d/*; do
         case "$f" in
-            *.sql)    echo "$0: running $f"; /usr/bin/mysqld --user=$MYSQL_DATA_USER --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < "$f"; echo ;;
-            *.sql.gz) echo "$0: running $f"; gunzip -c "$f" | /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < "$f"; echo ;;
+            *.sql)    echo "$0: running $f"; /usr/bin/mariadbd --user=$MYSQL_DATA_USER --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < "$f"; echo ;;
+            *.sql.gz) echo "$0: running $f"; gunzip -c "$f" | /usr/bin/mariadbd --user=mysql --bootstrap --verbose=0 --skip-name-resolve --skip-networking=0 < "$f"; echo ;;
             *)        echo "$0: ignoring or entrypoint initdb empty $f" ;;
         esac
         echo
@@ -153,7 +153,7 @@ EOF
     echo 'MySQL init process done. Ready for start up.'
     echo
 
-    echo "exec /usr/bin/mysqld --user=$MYSQL_DATA_USER --console --skip-name-resolve --skip-networking=0" "$@"
+    echo "exec /usr/bin/mariadbd --user=$MYSQL_DATA_USER --console --skip-name-resolve --skip-networking=0" "$@"
 fi
 
 # execute any pre-exec scripts
@@ -165,4 +165,4 @@ do
     fi
 done
 
-exec /usr/bin/mysqld --user=$MYSQL_DATA_USER --console --skip-name-resolve --skip-networking=0 $@
+exec /usr/bin/mariadbd --user=$MYSQL_DATA_USER --console --skip-name-resolve --skip-networking=0 $@
